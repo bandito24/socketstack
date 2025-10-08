@@ -40,14 +40,27 @@ roomRouter.post('/', async ( req, res) => {
 
 })
 
+roomRouter.get('/:slug', async(req, res) => {
+    const {slug} = req.params;
+    const {user} = req;
+
+    const result = await db.query('SELECT r.id, r.name, r.slug FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1 AND r.slug = $2', [user?.id, slug])
+    if(result.rowCount){
+        return res.status(200).json(result.rows[0])
+    } else {
+        return res.status(404).json([])
+    }
+})
+
+
 
 roomRouter.get('/', async(req, res) => {
     const {user} = req;
     const {rows} = await db.query('SELECT r.id, r.name, r.slug FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1', [user?.id])
     return res.status(200).json(rows)
-
-
 })
+
+
 
 
 

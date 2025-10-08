@@ -31,7 +31,7 @@ export default function Home() {
                     </div>
                 ) : (
                     <Button asChild>
-                        <Link href="(no-auth)/login">Login</Link>
+                        <Link href="/login">Login</Link>
                     </Button>
                 )}
             </div>

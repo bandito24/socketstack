@@ -1,6 +1,12 @@
+import {getAuthCookie} from "@/utils/sessionHeaders.tsx";
 
 export default class ServerRequest {
-    static apiLocation = '/api/'
+    static apiLocation = 'http://localhost:3000/api/'
+
+    static headers = {
+        'Content-Type': 'application/json',
+        Accept: "application/json",
+    };
 
 
     public static async get(resource: string) {
@@ -32,13 +38,8 @@ export default class ServerRequest {
         const options: Record<string, any> = {method: method}
 
 
-        options.headers = {
-            'Content-Type': 'application/json',
-            Accept: "application/json",
-        };
-        if (localStorage.getItem('token')){
-            options.headers.Authorization = `Bearer ${localStorage.getItem('token')}`;
-        }
+        options.headers = ServerRequest.headers
+
         if (valueToJSON) {
             options.body = JSON.stringify(valueToJSON)
         }
@@ -47,7 +48,7 @@ export default class ServerRequest {
         let responseBody;
         try {
             responseBody = await response.json();
-            console.log('incoming:', responseBody)
+            //console.log('incoming:', responseBody)
         } catch (e) {
             responseBody = null;
         }
@@ -60,5 +61,25 @@ export default class ServerRequest {
         return responseBody;
     }
 
+    static addHeader(key: string, value: string) {
+        const existing = ServerRequest.headers[key];
+
+        if (key.toLowerCase() === 'cookie' && existing) {
+            ServerRequest.headers[key] = `${existing}; ${value}`;
+        } else {
+            ServerRequest.headers[key] = value;
+        }
+    }
+
+
+    static async authenticate(betterAuthCookie: string | null){
+
+        if(betterAuthCookie){
+            ServerRequest.addHeader('Cookie', betterAuthCookie)
+        }
+
+    }
+
 
 }
+

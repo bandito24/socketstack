@@ -1,59 +1,50 @@
-// Express + Next JS server combination - server.js
-
 import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import next from "next";
-import {apiRouter} from "./server/routes/index.ts";
+import http from "node:http";
+
+import { apiRouter } from "./server/routes/index.ts";
+import { initIO } from "#root/server/io/socket.ts";
+import { registerSocketHandlers } from "#root/server/io/index.ts";
+
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev, turbo: true });
-const handle = app.getRequestHandler();
-const server = express();
+const nextApp = next({ dev, turbo: true });
+const handle = nextApp.getRequestHandler();
 
+const expressServer = express();
+const httpServer = http.createServer(expressServer);
 
+// Core Express middleware
+expressServer.use(express.json());
+expressServer.use("/api", apiRouter);
 
-console.log("DB Config:", {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-});
+// Pass any non-API routes to Next.js
+expressServer.all(/(.*)/, (req, res) => handle(req, res));
 
-//API entrypoint
+// Prepare Next.js, then init IO and start server
+nextApp.prepare().then(async () => {
+  const io = await initIO(httpServer); // ✅ safe, initialized after Next ready
+  registerSocketHandlers(io);
 
-server.use(express.json());
-server.use("/api", apiRouter);
-
-
-server.all(/(.*)/, (req, res) => {
-  return handle(req, res);
-});
-
-app.prepare().then(() => {
-  // Start listening to the Express.js Server
-  server.listen(3000, (err) => {
-    if (err) throw err;
-    console.log("Express Server running on http://localhost:3000");
+  httpServer.listen(3000, () => {
+    console.log("✅ Server running at http://localhost:3000");
   });
 });
 
-
-server.use((err, req, res, next) => {
-  console.error('💥 Error caught by final handler:', err);
-
-  // normalize to a consistent shape
+// Global error handler
+expressServer.use((err, req, res, next) => {
+  console.error("💥 Error caught by final handler:", err);
   const status = err.status || 500;
-  const message = err.message || 'Internal server error';
+  const message = err.message || "Internal server error";
 
-  // optional: hide internal details in production
-  if (process.env.NODE_ENV === 'production' && status === 500) {
-    return res.status(500).json({ error: 'Something went wrong' });
+  if (process.env.NODE_ENV === "production" && status === 500) {
+    return res.status(500).json({ error: "Something went wrong" });
   }
 
   res.status(status).json({
     error: message,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
   });
 });

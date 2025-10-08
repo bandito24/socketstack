@@ -62,29 +62,60 @@ export default function NewRoomForm() {
 
     return (
         <>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col bg-black/20 rounded-xl p-20 m-auto w-1/2">
-                <Input className="border-2 mb-2 border-black" placeholder="Room Name" {...register("name")} />
-                <ErrorMessage message={errors?.name?.message}/>
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex flex-col gap-4 bg-black/20 rounded-2xl p-10 max-w-md mx-auto w-full shadow-lg backdrop-blur-sm border border-black/30"
+            >
+                <h2 className="text-2xl font-semibold text-center mb-2">Create a Room</h2>
 
+                {/* Room Name */}
+                <div>
+                    <Input
+                        className="w-full border-2 border-black/40 rounded-lg px-4 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition"
+                        placeholder="Room Name"
+                        {...register("name")}
+                    />
+                    <ErrorMessage message={errors?.name?.message}/>
+                </div>
 
-                <div className="max-w-[200px]">
-                    <Label className="whitespace-nowrap"> Make Private
-                        <Input type={'checkbox'} onClick={handleTogglePassword}/>
+                {/* Make Private Toggle */}
+                <div
+                    className="flex items-center justify-between bg-white/10 rounded-lg px-4 py-2 border border-black/20">
+                    <Label className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                        <Input
+                            type="checkbox"
+                            onClick={handleTogglePassword}
+                            className="h-4 w-4 accent-blue-500"
+                        />
+                        Make Private
                     </Label>
                 </div>
-                <Input
-                    disabled={!passwordEnabled}
-                    className="border-2 mb-2 border-black"
-                    placeholder="password"
-                    {...register("password")}
-                />
-                <ErrorMessage message={errors?.password?.message}/>
 
+                {/* Password Field */}
+                <div>
+                    <Input
+                        disabled={!passwordEnabled}
+                        type="password"
+                        className={`w-full border-2 rounded-lg px-4 py-2 transition ${
+                            passwordEnabled
+                                ? "border-black/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                                : "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`}
+                        placeholder="Password"
+                        {...register("password")}
+                    />
+                    <ErrorMessage message={errors?.password?.message}/>
+                </div>
 
-                <Button className="cursor-pointer hover:bg-blue-200 mt-2 border-2 border-black rounded-2xl p-2"
-                        type="submit">submit!
+                {/* Submit Button */}
+                <Button
+                    type="submit"
+                    className="w-full mt-4 py-2 rounded-xl font-semibold border-2 border-black bg-blue-100 hover:bg-blue-200 transition active:scale-[0.98]"
+                >
+                    Submit
                 </Button>
             </form>
+
         </>
 
     )
