@@ -1,9 +1,9 @@
 import express from "express";
-import {NewRoomSchema} from "../../form-schemas.ts";
 import * as db from "../db.ts"
 import {slugify} from "../utils/helper-functions.ts";
 import {Err} from "../ErrorResponse.ts";
 import {requireAuth} from "../middleware/auth.ts";
+import {NewRoomSchema} from "#root/form-schemas.ts";
 
 export const roomRouter = express.Router()
 
@@ -35,7 +35,7 @@ roomRouter.post('/', async ( req, res) => {
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'
     await db.query(sql2, [user?.id, qRes.rows[0].id])
 
-    return res.status(201).json(qRes.rows)
+    return res.status(201).json(qRes.rows[0])
 
 
 })

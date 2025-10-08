@@ -10,8 +10,14 @@ import {Label} from "@/components/ui/label.tsx";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {NewRoomSchema} from "../../../../../form-schemas.ts";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
+import MakeNotification from "@/utils/MakeNotification.ts";
+
 export default function NewRoomForm() {
     const [passwordEnabled, setPasswordEnabled] = useState(false)
+    const queryClient = useQueryClient()
+    const {setRooms} = useRoomContext();
 
 
     type SchemaType = z.infer<typeof NewRoomSchema>;
@@ -23,15 +29,24 @@ export default function NewRoomForm() {
         setValue
     } = useForm<SchemaType>({resolver: zodResolver(NewRoomSchema)});
 
+    const mutation = useMutation({
+        mutationFn: (data: SchemaType) => ServerRequest.post('/rooms', data),
+        onSuccess: (data: Room) => {
+            debugger
+            queryClient.invalidateQueries({queryKey: ['rooms']})
+            setRooms(prev => [...prev, data])
+        },
+        onError: (data) => {
+            MakeNotification.alertFailed('You failed')
+        }
+    })
+
     //we should here call like API or something...
     const onSubmit: SubmitHandler<SchemaType> = async (data) => {
         // console.log(data)
-        try{
-
-            console.log('trying')
-            const res = await ServerRequest.post('/rooms', data)
-            console.log(res)
-        } catch(e){
+        try {
+            await mutation.mutateAsync(data)
+        } catch (e) {
             console.error(e)
         }
     }

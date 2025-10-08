@@ -5,7 +5,7 @@ import React, {createContext, ReactNode, useContext, useEffect, useState} from "
 import {useQuery} from "@tanstack/react-query";
 import ServerRequest from "@/utils/serverRequest.ts";
 
-type Room = {
+export type Room = {
     id: number,
     slug: string,
     name: string
