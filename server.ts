@@ -20,12 +20,14 @@ const httpServer = http.createServer(expressServer);
 expressServer.use(express.json());
 expressServer.use("/api", apiRouter);
 
+
+
 // Pass any non-API routes to Next.js
 expressServer.all(/(.*)/, (req, res) => handle(req, res));
 
 // Prepare Next.js, then init IO and start server
 nextApp.prepare().then(async () => {
-  const io = await initIO(httpServer); // ✅ safe, initialized after Next ready
+  const io = await initIO(httpServer);
   registerSocketHandlers(io);
 
   httpServer.listen(3000, () => {

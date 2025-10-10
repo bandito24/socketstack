@@ -1,16 +1,34 @@
 'use client'
 import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
 import ChatMessages from "@/app/(auth)/rooms/[slug]/ChatMessages.tsx";
+import {Socket} from "socket.io";
+import {useRef} from "react";
 
-export default function ChatInput({room}: { room: Room }) {
+export default function ChatInput({room, onSend}: { room: Room, onSend: (msg: string) => void }) {
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    function onSubmit(e){
+        e.preventDefault()
+        if(!inputRef || !inputRef?.current) return
+        const val = inputRef.current.value.trim();
+        if(!val){
+            return
+        }
+        console.log(val)
+        onSend(val)
+        inputRef.current.value = ''
+
+    }
+
 
 
     return (
         <form
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={(e) => onSubmit(e)}
             className="flex items-center gap-2 p-4 border-t border-gray-200 bg-gray-50"
         >
             <input
+                ref={inputRef}
                 type="text"
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"

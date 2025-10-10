@@ -62,5 +62,15 @@ roomRouter.get('/', async(req, res) => {
 
 
 
+// For dev, react dev tools invalid endpoint
+roomRouter.use((req, res, next) => {
+    if (req.url.endsWith(".js.map")) {
+        return res.status(204).end(); // No Content
+    }
+    next();
+});
+
+
+
 
 
