@@ -1,5 +1,7 @@
 import "express";
 
+type RoomType = {name: string, password: string | null, slug: string, id: number, createdAt: string}
+
 declare global {
     namespace Express {
         interface User {
@@ -16,6 +18,7 @@ declare global {
 
         interface Request {
             user?: User | null;
+            room?: RoomType | null
         }
     }
 }

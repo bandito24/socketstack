@@ -6,16 +6,15 @@ import ChatInput from "@/app/(auth)/rooms/[slug]/ChatInput.tsx";
 import {Room} from "@/contexts/RoomProvider.tsx";
 import {authClient} from "@/lib/auth-client.ts";
 import {io, Socket} from "socket.io-client";
-import initSocketHandler from "@/utils/initSocketHandler.ts";
-import {ClientToServerEvents, ServerToClientEvents} from '@mytypes/IOTypes.ts';
+import {ClientToServerEvents, RoomEvent, ServerToClientEvents} from '@mytypes/IOTypes.ts';
 import MakeNotification from "@/utils/MakeNotification.ts";
 
 
 
 export default function ChatIO({room}: { room: Room }) {
     const [isConnected, setIsConnected] = useState(false);
-    const [fooEvents, setFooEvents] = useState([]);
     const [clientSocket, setClientSocket] = useState<null | Socket<ServerToClientEvents, ClientToServerEvents>>(null)
+    const [roomEvents, setRoomEvents] = useState<RoomEvent[]>([])
     const ROOM_ID = room.id.toString()
     const {data: session} = authClient.useSession()
     console.log(session)
@@ -52,6 +51,10 @@ export default function ChatIO({room}: { room: Room }) {
             }
         })
 
+        socket.on('room-event', (payload) => {
+            setRoomEvents(prev => [...prev, payload])
+        })
+
 
         socket.on('disconnect', () => {
             setIsConnected(false)
@@ -67,8 +70,10 @@ export default function ChatIO({room}: { room: Room }) {
 
     return (
         <>
-            <h1>{isConnected ? "YOU'RE IN" : '403'}</h1>
-            <ChatMessages room={room}/>
+            <h1 className={`text-2xl font-bold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                {isConnected ? "You're in!" : "403 – Access Denied"}
+            </h1>
+            <ChatMessages username={session?.user.username ?? ''} roomEvents={roomEvents}/>
             <ChatInput onSend={onSend} room={room}/>
         </>
     )

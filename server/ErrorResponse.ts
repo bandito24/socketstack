@@ -11,4 +11,7 @@ export class Err{
         return Err.generate(source, message, 400);
 
     }
+    static invalidArgument(source: 'API call', message: 'Invalid arguments provided', status: 400){
+        return Err.generate(source, message, status);
+    }
 }

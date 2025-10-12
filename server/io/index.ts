@@ -9,9 +9,6 @@ type SocketId = string
 type UserName = string
 type RoomMembers = Map<SocketId, UserName>
 
-// type RoomRequest = {room_id: string}
-// type RoomMessage = RoomRequest & {msg: string}
-
 
 const chatRooms: Map<RoomId, RoomMembers> = new Map();
 
@@ -43,10 +40,7 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
                 username = await validateUserAndJoinRoom(userId, room_id, socket)
                 if(!username) return //Notify user in the validation fn
             }
-            io.to(room_id).emit('msg', {msg: msg, username: username, time: getDateTimeStr()})
-
-
-
+            io.to(room_id).emit('room-event', {type: 'msg', content: msg, username: username, time: getDateTimeStr()})
 
         })
 

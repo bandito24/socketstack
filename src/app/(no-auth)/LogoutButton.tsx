@@ -1,3 +1,4 @@
+'use client'
 import {Button} from "@/components/ui/button.tsx";
 import {authClient} from "@/lib/auth-client.ts";
 import {useRouter} from "next/navigation";

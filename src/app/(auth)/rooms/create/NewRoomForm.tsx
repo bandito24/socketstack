@@ -9,7 +9,7 @@ import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {NewRoomSchema} from "../../../../../form-schemas.ts";
+import {RoomSchema} from "../../../../../form-schemas.ts";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
 import MakeNotification from "@/utils/MakeNotification.ts";
@@ -20,20 +20,20 @@ export default function NewRoomForm() {
     const {setRooms} = useRoomContext();
 
 
-    type SchemaType = z.infer<typeof NewRoomSchema>;
+    type SchemaType = z.infer<typeof RoomSchema>;
 
     const {
         register,
         handleSubmit,
         formState: {errors},
         setValue
-    } = useForm<SchemaType>({resolver: zodResolver(NewRoomSchema)});
+    } = useForm<SchemaType>({resolver: zodResolver(RoomSchema)});
 
     const mutation = useMutation({
         mutationFn: (data: SchemaType) => ServerRequest.post('/rooms', data),
-        onSuccess: (data: Room) => {
+        onSuccess: async (data: Room) => {
             debugger
-            queryClient.invalidateQueries({queryKey: ['rooms']})
+            await queryClient.invalidateQueries({queryKey: ['rooms']})
             setRooms(prev => [...prev, data])
         },
         onError: (data) => {

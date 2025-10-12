@@ -1,5 +1,6 @@
-import {cookies} from 'next/headers';
+import {cookies, headers} from 'next/headers';
 import ServerRequest from "@/utils/serverRequest.ts";
+import {auth} from "#root/server/auth.ts";
 
 export async function getAuthCookie() {
     const cookieValue = (await cookies()).get('better-auth.session_token')?.value;
@@ -19,3 +20,6 @@ export default async function authorizeServerRequest() {
         return false;
     }
 }
+
+
+

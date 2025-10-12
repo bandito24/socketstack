@@ -1,19 +1,22 @@
-import {Room} from "@/contexts/RoomProvider.tsx";
+import {MessageIOEvent, RoomEvent} from "@mytypes/IOTypes.ts";
 
-export default function ChatMessages(props: {room: Room}){
+export default function ChatMessages({roomEvents, username: hostUsername}: { username: string, roomEvents: RoomEvent[] }) {
 
     return (
         <ul
             id="message-list"
             className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scroll-smooth"
         >
-            <IncomingMessage content={"Hey there 👋"}/>
-            <OutgoingMessage content={"Fuck You"}/>
+            {roomEvents.map(evt => (
+                evt.type === 'msg' ?
+                    (evt.username === hostUsername ? <OutgoingMessage payload={evt} /> : <IncomingMessage payload={evt} /> )
+                    : null
+            ))}
 
-            <li className="flex justify-end w-full">
-                <p className="text-sm max-w-[75%]  bg-blue-500 text-white px-4 py-2 rounded-lg shadow-sm">Hey!
-                    How’s it going?</p>
-            </li>
+            {/*<li className="flex justify-end w-full">*/}
+            {/*    <p className="text-sm max-w-[75%]  bg-blue-500 text-white px-4 py-2 rounded-lg shadow-sm">Hey!*/}
+            {/*        How’s it going?</p>*/}
+            {/*</li>*/}
 
 
         </ul>
@@ -21,21 +24,36 @@ export default function ChatMessages(props: {room: Room}){
     )
 }
 
-function IncomingMessage({content}: { content: string }) {
+function IncomingMessage({payload}: { payload: MessageIOEvent }) {
+    const {username, time, content} = payload;
     return (
         <li className="self-start max-w-[75%] bg-gray-100 px-4 py-2 rounded-lg shadow-sm">
-            <p className="text-gray-800 text-sm"> {content}</p>
+            <EventTag username={username} time={time}/>
+            <p className="text-gray-800 text-sm">{content}</p>
+            <p>{time}</p>
         </li>
     )
 
 }
 
-function OutgoingMessage({content}: { content: string }) {
+function OutgoingMessage({payload}: { payload: MessageIOEvent }) {
+    const {username, time, content} = payload;
     return (
-        <li className="flex justify-end w-full">
-            <p className="text-sm max-w-[75%]  bg-blue-500 text-white px-4 py-2 rounded-lg shadow-sm">Hey!
-                {content}</p>
+        <li className="flex flex-col items-end w-full">
+            <EventTag username={username} time={time}/>
+            <p className="text-sm max-w-[75%]  bg-blue-500 text-white px-4 py-2 rounded-lg shadow-sm">{content}</p>
+            <time className="text-xs">{time}</time>
         </li>
     )
 
+}
+
+function EventTag({username, time}: { username: string, time: string }) {
+    return (
+
+        <div className="flex justify-between items-center mb-1">
+            <span className="font-semibold text-gray-700">{username}</span>
+            {/*<span className="text-xs text-gray-500">{time}</span>*/}
+        </div>
+    )
 }
