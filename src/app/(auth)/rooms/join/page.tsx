@@ -1,5 +1,5 @@
 'use client'
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {RoomSchema} from "#root/form-schemas.ts";
 import {SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -9,22 +9,34 @@ import ServerRequest from "@/utils/serverRequest.ts";
 import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
 import MakeNotification from "@/utils/MakeNotification.ts";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
+import {clsx} from "clsx";
 
-export default function JoinRoom(){
+export default function JoinRoom() {
     const [passwordEnabled, setPasswordEnabled] = useState(false)
     const queryClient = useQueryClient()
     const {setRooms} = useRoomContext();
 
 
+
     const mutation = useMutation({
         mutationFn: (data: SchemaType) => ServerRequest.post('/rooms/join', data),
         onSuccess: async (data: Room) => {
-            debugger
+            reset()
             await queryClient.invalidateQueries({queryKey: ['rooms']})
             setRooms(prev => [...prev, data])
         },
         onError: (data) => {
-            MakeNotification.alertFailed('You failed')
+            if ("status" in data && (data.status === 422 || data.status === 401)) {
+                setPasswordEnabled(true)
+                if (data.status === 401) {
+                    setError('password', {
+                        type: 'manual',
+                        message: 'This password is incorrect',
+                    });
+                }
+            } else {
+                MakeNotification.alertFailed()
+            }
         }
     })
 
@@ -34,8 +46,11 @@ export default function JoinRoom(){
         register,
         handleSubmit,
         formState: {errors},
-        setValue
+        setValue,
+        reset,
+        setError
     } = useForm<SchemaType>({resolver: zodResolver(RoomSchema)});
+
 
     const onSubmit: SubmitHandler<SchemaType> = async (data) => {
         // console.log(data)
@@ -71,13 +86,18 @@ export default function JoinRoom(){
                 <ErrorMessage message={errors?.name?.message}/>
 
                 {/* Password input */}
-                <input
-                    type="password"
-                    {...register("password")}
-                    placeholder="This room requires a password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <ErrorMessage message={errors?.password?.message}/>
+                <div className={clsx(!passwordEnabled && 'hidden', 'w-full')}>
+                    <input
+
+                        type="password"
+                        {...register("password")}
+                        placeholder="This room requires a password"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <ErrorMessage message={errors?.password?.message}/>
+                    {passwordEnabled ?
+                        <p className="text-sm text-orange-400 font-bold">This room requires a password</p> : null}
+                </div>
 
                 {/* Join button */}
                 <button

@@ -17,6 +17,7 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
         <>
 
             <ReactQueryProvider>
+                <h1 className="text-2xl text-red-500 font-bold text-center">{session?.user?.username ?? 'anonymous'}</h1>
                 {children}
             </ReactQueryProvider>
         </>

@@ -7,42 +7,110 @@ export type SocketHandlerFn = (socket: Socket) => void
 type RoomId = string
 type SocketId = string
 type UserName = string
-type RoomMembers = Map<SocketId, UserName>
+type RoomMembers = Set<UserName>
+
+const POLL_MS = 1000
 
 
 const chatRooms: Map<RoomId, RoomMembers> = new Map();
 
-function authorizedRoomMessage(roomId: string, socketId: string){
+function authorizedRoomMessage(roomId: string, socketId: string) {
     return chatRooms.get(roomId)?.has(socketId) ? true : false
 }
-function getUserId(socket: Socket){
+
+function getUserId(socket: Socket) {
     return socket.handshake.auth.token;
 }
 
 
 export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerToClientEvents>) {
-    io.on("connection", (socket) => {
+    io.on("connection", async (socket) => {
+        if (socket.recovered) {
+            console.log("CONNECTION STATE WAS RECOVERED")
+            socket.data.sync = true
+            // recovery was successful: socket.id, socket.rooms and socket.data were restored
+        } else {
+            socket.data.sync = false
+            // new or unrecoverable session
+        }
+
+
         const userId = getUserId(socket);
+        const {rows} = await dbPool.query('SELECT username FROM users where id = $1', [userId])
+        if (!rows) {
+            socket.emit('notify', {room_id: '-1', success: false, msg: 'You do not have a valid user ID'})
+            socket.disconnect(true);
+            return;
+        }
+        const [{username}] = rows;
+        socket.data.username = username
 
         socket.on('request-room', async (payload) => {
             const {room_id} = payload
-          await validateUserAndJoinRoom(userId, room_id, socket)
+            const joined = await validateUserAndJoinRoom(userId, room_id, socket)
+            if (joined) {
+                const roomSockets = (await io.in(room_id).fetchSockets() ?? []).filter(s => s.id !== socket.id);
+
+                function requestMessages(socketId) {
+                    return new Promise((resolve) => {
+                        io.timeout(POLL_MS).to(room_id).except(socket.id).emit('request-syncs', {
+                            room_id: room_id,
+                            socketId: socket.id
+                        }, (err, payload) => {
+                            if (err) {
+                                resolve(false)
+                            } else {
+                                io.to(payload.socketId).emit('respond-sync', payload)
+                                resolve(true)
+                            }
+                        })
+                    })
+
+                }
+
+
+                for (const roomSocket of roomSockets) {
+                    const success = await requestMessages(roomSocket.id)
+                    if (success) break
+                }
+            }
         })
 
         socket.on('msg', async ({room_id, msg}) => {
-            if(!authorizedRoomMessage(room_id, socket.id)){
-                socket.emit('notify', {success: false, msg: "You Are not authorized to message this room"})
-                return
+            if (!authorizedRoomMessage(room_id, socket.id)) {
+                const permitted = await validateUserAndJoinRoom(userId, room_id, socket)
+                if (!permitted) {
+                    socket.emit('notify', {
+                        room_id: room_id,
+                        success: false,
+                        msg: "You Are not authorized to message this room"
+                    })
+                    return
+                }
             }
-            let username: string | undefined | null = chatRooms.get(room_id)?.get(socket.id)
-            if(!username){
-                console.error('SOCKET ID NOT MAPPED TO ROOM_ID')
-                username = await validateUserAndJoinRoom(userId, room_id, socket)
-                if(!username) return //Notify user in the validation fn
-            }
-            io.to(room_id).emit('room-event', {type: 'msg', content: msg, username: username, time: getDateTimeStr()})
+            const {username} = socket.data
+
+            io.to(room_id).emit('room-event', {
+                room_id: room_id,
+                type: 'msg',
+                content: msg,
+                username: username,
+                time: getDateTimeStr()
+            })
 
         })
+
+        socket.on('respond-sync', (payload) => {
+            // if(!socket.data?.sync){
+            const socket = io.sockets.sockets.get(payload.socketId)
+            if (!socket) {
+                return
+            }
+            io.to(payload.socketId).emit('respond-sync', payload)
+            socket.data.sync = true;
+            // }
+        })
+
 
         socket.on('disconnecting', () => {
             const {rooms} = socket;
@@ -55,30 +123,62 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
         })
 
 
-
-
     });
-}
 
-async function validateUserAndJoinRoom(userId: string, room_id: string, socket: Socket){
-    const roomId = parseInt(room_id)
-    const {rows, rowCount} = await dbPool.query('SELECT username FROM room_users ru JOIN users u ON ru.user_id = u.id WHERE ru.user_id = $1 AND ru.room_id = $2', [userId, roomId])
-    if(rowCount){
-        const [{username}] = rows;
-        if (!chatRooms.has(room_id)) {
-            chatRooms.set(room_id, new Map());
+
+    async function validateUserAndJoinRoom(userId: string, room_id: string, socket: Socket) {
+        const roomId = parseInt(room_id)
+        const {rows} = await dbPool.query('SELECT EXISTS (SELECT 1 FROM room_users WHERE user_id = $1 AND room_id = $2)', [userId, roomId])
+        if (rows[0].exists) {
+            const {username} = socket.data;
+            if (socket.data?.activeRoom) {
+                console.log(`former active room id ${socket.data?.activeRoom}`)
+                const {activeRoom: oldRoom} = socket.data
+                chatRooms.get(oldRoom)?.delete(username)
+                if (chatRooms.get(oldRoom)?.size) {
+                    io.to(oldRoom).except(socket.id).emit('room-event', {
+                        type: 'member',
+                        status: 'leave',
+                        username: username,
+                        time: getDateTimeStr(),
+                        memberStack: Array.from(chatRooms.get(oldRoom) ?? []),
+                        room_id: oldRoom
+                    })
+                } else {
+                    chatRooms.delete(oldRoom)
+                }
+            }
+            if (!chatRooms.has(room_id)) {
+                chatRooms.set(room_id, new Set());
+            }
+            chatRooms.get(room_id)?.add(username)
+            socket.join(room_id)
+            socket.data.activeRoom = room_id;
+
+            io.to(room_id).emit('room-event', {
+                type: 'member',
+                status: 'join',
+                username: username,
+                time: getDateTimeStr(),
+                memberStack: Array.from(chatRooms.get(room_id) ?? []),
+                room_id: room_id
+            })
+            const memberStack = Array.from(chatRooms?.get(room_id)?.values() ?? [])
+            socket.emit('request-room', {success: true, memberStack: memberStack, room_id: room_id})
+            return true
+        } else {
+            socket.emit('request-room', {
+                success: false,
+                room_id: room_id,
+                msg: 'You are unauthorized to join this room'
+            })
+            return false
         }
-        chatRooms.get(room_id)?.set(socket.id, username)
-        socket.join(room_id)
-        socket.emit('request-room', {success: true})
-        return username
-    } else {
-        socket.emit('request-room', {success: false, msg: 'You are unauthorized to join this room'})
-        return null
     }
 }
 
-function getDateTimeStr(){
+
+function getDateTimeStr() {
     return new Date().toLocaleString('en-US', {
         month: 'numeric',
         day: 'numeric',

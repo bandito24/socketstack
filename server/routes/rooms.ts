@@ -6,6 +6,7 @@ import {requireAuth} from "../middleware/auth.ts";
 import {RoomSchema} from "#root/form-schemas.ts";
 import {z} from "zod";
 import {checkRoomExistence} from "#root/server/middleware/middleware.ts";
+import {hashMyPassword, verifyMyPassword} from "#root/server/utils/brcrypt.ts";
 
 
 export const roomRouter = express.Router()
@@ -13,7 +14,7 @@ export const roomRouter = express.Router()
 roomRouter.use(requireAuth);
 
 
-roomRouter.post('/rooms/join', checkRoomExistence, async (req, res) => {
+roomRouter.post('/join', checkRoomExistence, async (req, res) => {
     const {password} = req.body as { name: string, password: string | null, slug: string };
     const {user} = req;
     if (!req?.room) {
@@ -21,7 +22,14 @@ roomRouter.post('/rooms/join', checkRoomExistence, async (req, res) => {
     }
     const {room} = req;
     if (room?.password) {
-        return res.status(422).json({status: 'Incomplete. Password needed'})
+        if(!password){
+            return res.status(422).json({status: 'Incomplete. Password needed'})
+        } else {
+            const hashMatch = await verifyMyPassword(password, room?.password)
+            if(!hashMatch){
+                return res.status(401).json({password: 'Incorrect Credentials'})
+            }
+        }
     }
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'
     await db.query(sql2, [user?.id, room.id])
@@ -41,9 +49,15 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
 
 
     const sql1 = 'INSERT INTO rooms (name, slug, password) VALUES ($1, $2, $3) RETURNING *';
+    let hashPassword;
+    if(password){
+        hashPassword = await hashMyPassword(password)
+    } else {
+        hashPassword = password;
+    }
 
 
-    const qRes = await db.query(sql1, [name, slug, password]);
+    const qRes = await db.query(sql1, [name, slug, hashPassword]);
 
 
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'

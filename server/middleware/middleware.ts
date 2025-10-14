@@ -16,7 +16,7 @@ export const checkRoomExistence = async (req, res, next) => {
     const slug = slugify(name);
     const {rows} = await db.query('SELECT * FROM rooms WHERE slug = $1', [slug])
     if (rows.length) {
-        req.room = rows[1]
+        req.room = rows[0]
     } else {
         req.room = null
     }

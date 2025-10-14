@@ -13,6 +13,7 @@ export default async function Page({
 
     await authorizeServerRequest();
     const {slug} = await params
+    console.log(slug)
     const room = await ServerRequest.get(`/rooms/${slug}`)
 
 

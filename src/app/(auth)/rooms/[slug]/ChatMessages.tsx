@@ -7,10 +7,12 @@ export default function ChatMessages({roomEvents, username: hostUsername}: { use
             id="message-list"
             className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scroll-smooth"
         >
-            {roomEvents.map(evt => (
+            {roomEvents.map((evt, idx) => (
+                <div className="contents" key={idx}>{
                 evt.type === 'msg' ?
                     (evt.username === hostUsername ? <OutgoingMessage payload={evt} /> : <IncomingMessage payload={evt} /> )
                     : null
+                }</div>
             ))}
 
             {/*<li className="flex justify-end w-full">*/}
@@ -27,10 +29,10 @@ export default function ChatMessages({roomEvents, username: hostUsername}: { use
 function IncomingMessage({payload}: { payload: MessageIOEvent }) {
     const {username, time, content} = payload;
     return (
-        <li className="self-start max-w-[75%] bg-gray-100 px-4 py-2 rounded-lg shadow-sm">
+        <li className="flex flex-col items-start w-full">
             <EventTag username={username} time={time}/>
-            <p className="text-gray-800 text-sm">{content}</p>
-            <p>{time}</p>
+            <p className="text-sm max-w-[75%] text-gray-800 bg-gray-100 px-4 py-2 rounded-lg shadow-sm">{content}</p>
+            <time className="text-xs">{time}</time>
         </li>
     )
 

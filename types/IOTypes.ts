@@ -1,19 +1,23 @@
+type RequestBase = { room_id: string }
+type ServerAck =  RequestBase & { success: boolean, msg?: string, memberStack?: string[] }
+type ClientRoomMessage = RequestBase & { msg: string }
+export type MessageIOEvent = RequestBase & { type: 'msg', content: string, username: string, time: string }
+type MemberEvent = RequestBase & { type: 'member', username: string, time: string, memberStack: string[] } & (| { status: 'join' } | {
+    status: 'leave'
+})
+export type RoomEvent = RequestBase & (MessageIOEvent | MemberEvent);
+export type RespondSync = RequestBase & {data: MessageIOEvent[], socketId: string}
 
-
-type RoomRequest = {room_id: string}
-type ServerAck = {success: boolean, msg?: string}
-type ClientRoomMessage = RoomRequest & {msg: string}
-export type MessageIOEvent = {type: 'msg', content: string, username: string, time: string}
-type MemberEvent = {type: 'member', username: string, time: string} & (| {status: 'join'} | {status: 'leave'})
-export type RoomEvent = MessageIOEvent | MemberEvent
-export interface ClientToServerEvents  {
-    'request-room': (payload: RoomRequest) => void
+export interface ClientToServerEvents {
+    'request-room': (payload: RequestBase) => void
     'msg': (payload: ClientRoomMessage) => void
-
+    'respond-sync': (payload: RespondSync) => void
 }
 
 export interface ServerToClientEvents {
     'request-room': (payload: ServerAck) => void
     'notify': (payload: ServerAck) => void
     'room-event': (payload: RoomEvent) => void
+    'respond-sync': (payload: RespondSync) => void
+    'request-sync': (payload: RequestBase & { socketId: string }) => void
 }
