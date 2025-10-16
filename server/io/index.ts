@@ -27,10 +27,8 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
     io.on("connection", async (socket) => {
         if (socket.recovered) {
             console.log("CONNECTION STATE WAS RECOVERED")
-            socket.data.sync = true
             // recovery was successful: socket.id, socket.rooms and socket.data were restored
         } else {
-            socket.data.sync = false
             // new or unrecoverable session
         }
 
@@ -49,17 +47,23 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
             const {room_id} = payload
             const joined = await validateUserAndJoinRoom(userId, room_id, socket)
             if (joined) {
-                const roomSockets = (await io.in(room_id).fetchSockets() ?? []).filter(s => s.id !== socket.id);
+                const roomSockets = (await io.in(room_id).fetchSockets() ?? [])
+                    .filter(s => s.id !== socket.id);
 
                 function requestMessages(socketId) {
+
                     return new Promise((resolve) => {
-                        io.timeout(POLL_MS).to(room_id).except(socket.id).emit('request-syncs', {
+                        io.timeout(POLL_MS).to(socketId).emit('request-sync', {
                             room_id: room_id,
                             socketId: socket.id
-                        }, (err, payload) => {
+                        }, (err, payloads) => {
                             if (err) {
                                 resolve(false)
+                                console.log('FAILED')
                             } else {
+                                const payload = Array.isArray(payloads) ? payloads[0] : payloads;
+
+                                console.log(payload)
                                 io.to(payload.socketId).emit('respond-sync', payload)
                                 resolve(true)
                             }
@@ -101,14 +105,11 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
         })
 
         socket.on('respond-sync', (payload) => {
-            // if(!socket.data?.sync){
             const socket = io.sockets.sockets.get(payload.socketId)
             if (!socket) {
                 return
             }
             io.to(payload.socketId).emit('respond-sync', payload)
-            socket.data.sync = true;
-            // }
         })
 
 

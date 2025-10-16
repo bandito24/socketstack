@@ -9,6 +9,7 @@ export type Room = {
     id: number,
     slug: string,
     name: string
+    notification_count?: 0;
 }
 
 type RoomContextType = {
@@ -23,6 +24,8 @@ const RoomContext = createContext<RoomContextType | undefined>(undefined);
 
 export function RoomProvider({children}: {children: ReactNode}){
     const [rooms, setRooms] = useState<Room[]>([])
+
+
 
 
 

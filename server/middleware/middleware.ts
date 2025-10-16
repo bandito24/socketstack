@@ -1,11 +1,11 @@
-import {RoomSchema} from "#root/form-schemas.ts";
 import {Err} from "#root/server/ErrorResponse.ts";
 import {slugify} from "#root/server/utils/helper-functions.ts";
 import * as db from "#root/server/db.ts";
+import {JoinRoomSchema} from "#root/form-schemas.ts";
 
 export const checkRoomExistence = async (req, res, next) => {
     const {name, password} = req.body as { name: string, password: string | null };
-    const result = RoomSchema.safeParse({name, password})
+    const result = JoinRoomSchema.safeParse({name, password})
     if (!result.success) {
         return res.status(400).send(Err.fromZod(result.error))
     }

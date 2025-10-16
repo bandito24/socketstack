@@ -1,6 +1,5 @@
 'use client'
 import {useEffect, useRef, useState} from "react";
-import {RoomSchema} from "#root/form-schemas.ts";
 import {SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {z} from "zod";
@@ -10,6 +9,7 @@ import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
 import MakeNotification from "@/utils/MakeNotification.ts";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
 import {clsx} from "clsx";
+import {JoinRoomSchema} from "#root/form-schemas.ts";
 
 export default function JoinRoom() {
     const [passwordEnabled, setPasswordEnabled] = useState(false)
@@ -40,7 +40,7 @@ export default function JoinRoom() {
         }
     })
 
-    type SchemaType = z.infer<typeof RoomSchema>;
+    type SchemaType = z.infer<typeof JoinRoomSchema>;
 
     const {
         register,
@@ -49,7 +49,7 @@ export default function JoinRoom() {
         setValue,
         reset,
         setError
-    } = useForm<SchemaType>({resolver: zodResolver(RoomSchema)});
+    } = useForm<SchemaType>({resolver: zodResolver(JoinRoomSchema)});
 
 
     const onSubmit: SubmitHandler<SchemaType> = async (data) => {

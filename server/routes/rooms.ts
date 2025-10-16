@@ -3,7 +3,6 @@ import * as db from "../db.ts"
 import {slugify} from "../utils/helper-functions.ts";
 import {Err} from "../ErrorResponse.ts";
 import {requireAuth} from "../middleware/auth.ts";
-import {RoomSchema} from "#root/form-schemas.ts";
 import {z} from "zod";
 import {checkRoomExistence} from "#root/server/middleware/middleware.ts";
 import {hashMyPassword, verifyMyPassword} from "#root/server/utils/brcrypt.ts";
@@ -14,11 +13,11 @@ export const roomRouter = express.Router()
 roomRouter.use(requireAuth);
 
 
-roomRouter.post('/join', checkRoomExistence, async (req, res) => {
+roomRouter.post('/members', checkRoomExistence, async (req, res) => {
     const {password} = req.body as { name: string, password: string | null, slug: string };
     const {user} = req;
     if (!req?.room) {
-        return res.status(404).json(Err.generate('name', 'We could not find a room matching this name'))
+        return res.status(404).json(Err.generate('We could not find a room matching this name'))
     }
     const {room} = req;
     if (room?.password) {
@@ -44,7 +43,7 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
     const {user} = req;
 
     if (req?.room) {
-        return res.status(409).json(Err.generate('name', 'This name is taken. Please choose another name'))
+        return res.status(409).json(Err.generate('This name is taken. Please choose another name'))
     }
 
 

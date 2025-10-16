@@ -19,5 +19,5 @@ export interface ServerToClientEvents {
     'notify': (payload: ServerAck) => void
     'room-event': (payload: RoomEvent) => void
     'respond-sync': (payload: RespondSync) => void
-    'request-sync': (payload: RequestBase & { socketId: string }) => void
+    'request-sync': (payload: RequestBase & { socketId: string}, callback: (response: RespondSync) => void) => void
 }

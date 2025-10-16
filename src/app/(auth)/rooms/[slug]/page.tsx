@@ -4,6 +4,7 @@ import authorizeServerRequest, {getAuthCookie} from "@/utils/sessionHeaders.tsx"
 import ChatMessages from "@/app/(auth)/rooms/[slug]/ChatMessages.tsx";
 import ChatInput from "@/app/(auth)/rooms/[slug]/ChatInput.tsx";
 import ChatIO from "@/app/(auth)/rooms/[slug]/ChatIO.tsx";
+import {ChatWindow} from "@/app/(auth)/rooms/[slug]/ChatWindow.tsx";
 
 export default async function Page({
                                        params,
@@ -11,20 +12,24 @@ export default async function Page({
     params: Promise<{ slug: string }>
 }) {
 
-    await authorizeServerRequest();
-    const {slug} = await params
-    console.log(slug)
-    const room = await ServerRequest.get(`/rooms/${slug}`)
+    // await authorizeServerRequest();
+    // const {slug} = await params
+    // console.log(slug)
+    // const room = await ServerRequest.get(`/rooms/${slug}`)
 
 
     return (
-        <div
-            className="flex flex-col h-[80vh] max-w-2xl mx-auto bg-white/60 border border-gray-200 rounded-2xl shadow-md backdrop-blur-md overflow-hidden">
-            {/* Chat header */}
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-100">
-                <h2 className="text-lg font-semibold text-gray-800">{room.name}</h2>
-            </div>
-            <ChatIO room={room}/>
-        </div>
+        // <div
+        //     className="flex flex-col h-[80vh] max-w-2xl mx-auto bg-white/60 border border-gray-200 rounded-2xl shadow-md backdrop-blur-md overflow-hidden">
+        //     {/* Chat header */}
+        //     <div className="px-4 py-3 border-b border-gray-200 bg-gray-100">
+        //         <h2 className="text-lg font-semibold text-gray-800">{room.name}</h2>
+        //     </div>
+        //     <ChatIO room={room}/>
+        // </div>
+        // <div className="w-full h-full flex flex-1 flex-col">
+        <>
+        <ChatWindow />
+        </>
     )
 }

@@ -8,22 +8,10 @@ export default async function RoomPage() {
 
 
     return (
-        <div className="flex flex-col w-1/2 items-center space-y-4">
-            <h2 className="text-xl font-semibold text-gray-700">
-                {"hi " + data!.user.name}
-            </h2>
-
-            <div className="flex justify-around">
-                <Button asChild>
-                    <Link href={"/rooms/create"}>
-                        Create Room
-                    </Link>
-                </Button>
-                <Button asChild><Link href={"/rooms/join"}>
-                    Join New Room
-                </Link></Button>
+        <div className="h-full flex items-center justify-center bg-background">
+            <div className="text-center text-muted-foreground">
+                <p>Select a chat to start messaging</p>
             </div>
-
         </div>
     )
 }

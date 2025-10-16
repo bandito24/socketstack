@@ -17,7 +17,7 @@ export const authenticate = async function(req, res, next){
 
 export const requireAuth = (req, res, next) => {
     if(!("user" in req) || !req.user){
-        res.status(401).json(Err.generate('Unauthenticated', 'Sign In', 401))
+        res.status(401).json(Err.generate('Sign In', 401))
     }
     next()
 }

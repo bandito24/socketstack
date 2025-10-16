@@ -52,7 +52,7 @@ export default function ChatIO({room}: { room: Room }) {
         }
 
 
-        function handleRequestRoom(ack) {
+        const handleRequestRoom: ServerToClientEvents['request-room'] = (ack) => {
             const {success} = ack
             if (ack?.memberStack) {
                 setMemberStack(ack.memberStack)
@@ -65,13 +65,12 @@ export default function ChatIO({room}: { room: Room }) {
         }
 
         function handleExteriorRoomEvent(payload: { room_id: string }) {
-            console.log('EXTERIOR ROOM EVENT')
-            // console.log(payload)
-            // console.log('123')
+            // if
+
         }
 
 
-        function handleRoomEvent(payload: RoomEvent) {
+        const handleRoomEvent: ServerToClientEvents['room-event'] = (payload) => {
             if (payload.room_id !== ROOM_ID) {
                 return handleExteriorRoomEvent(payload)
             }
@@ -82,13 +81,13 @@ export default function ChatIO({room}: { room: Room }) {
             setRoomEvents(prev => [...prev, payload])
         }
 
-        function handleNotify(payload) {
+        const handleNotify: ServerToClientEvents['notify'] = (payload) => {
             if (payload.room_id !== ROOM_ID) {
                 return handleExteriorRoomEvent(payload)
             }
         }
 
-        function handleRequestSync(payload) {
+        const handleRequestSync: ServerToClientEvents['request-sync'] = (payload, callback) => {
 
             if (payload.room_id !== ROOM_ID) {
                 return handleExteriorRoomEvent(payload)
@@ -101,14 +100,15 @@ export default function ChatIO({room}: { room: Room }) {
 
             const response = {data: msgs, socketId: payload.socketId, room_id: ROOM_ID}
             if (socket) {
-                socket.emit('respond-sync', response)
+                callback(response)
                 console.log('request sync emitted', response)            }
         }
 
-        function handleRespondSync(payload: RespondSync) {
-            if(syncRef.current === true) return
+        const handleRespondSync: ServerToClientEvents['respond-sync'] = (payload) => {
 
             console.log('response sync received', payload)
+            if(syncRef.current === true) return
+
             if (payload.room_id !== ROOM_ID) {
                 return handleExteriorRoomEvent(payload)
             }
