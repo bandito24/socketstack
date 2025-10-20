@@ -24,7 +24,6 @@ export default function useRoomForm<T extends RoomSchemas>(
     const mutation = useMutation({
         mutationFn: (data: SchemaData) => ServerRequest.post(postEndpoint, data),
         onSuccess: async (data: Room) => {
-            debugger
             await queryClient.invalidateQueries({queryKey: ['rooms']})
             setRooms(prev => [...prev, data])
             if (successFn) {
@@ -34,7 +33,6 @@ export default function useRoomForm<T extends RoomSchemas>(
             form.reset()
         },
         onError: (data) => {
-            debugger
             if ("status" in data) {
                 const {status} = data;
                 if (status === 422) {

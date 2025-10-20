@@ -1,5 +1,4 @@
 'use client'
-import { useState, useEffect } from "react";
 import { UserPlus } from "lucide-react";
 import {
     Dialog,
@@ -53,7 +52,7 @@ export function JoinChatroom() {
                 <DialogHeader>
                     <DialogTitle>Join Chatroom</DialogTitle>
                     <DialogDescription>
-                        Enter the room name to join. If the room requires a password, you'll need to provide it.
+                        Enter the room name to join. If the room requires a password, you&#39;ll need to provide it.
                     </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4 py-4" onSubmit={handleSubmit(hk.onSubmit)}>

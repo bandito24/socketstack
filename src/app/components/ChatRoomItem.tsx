@@ -1,34 +1,21 @@
 import {Badge} from "@/components/ui/badge.tsx";
 import {Avatar, AvatarFallback} from "@/components/ui/avatar.tsx";
 import {Room} from "@/contexts/RoomProvider.tsx";
+import {getAvatarLetters} from "@/lib/utils.ts";
+import Link from "next/link";
 
-export function ChatRoomItem({room}: {room: Room}) {
-    function getAvatarLetters(name: string): string {
-        if (!name) return "";
-
-        // Split by spaces, filter out empty parts
-        const words = name
-            .trim()
-            .split(/[^a-zA-Z0-9]+/)
-            .filter(Boolean);
-
-        // Case 1: two or more words → use first letter of each
-        if (words.length >= 2) {
-            return (words[0][0] + words[1][0]).toUpperCase();
-        }
-
-        // Case 2: one word → take first two letters
-        const firstWord = words[0];
-        return firstWord.substring(0, 2).toUpperCase();
-    }
+export function ChatRoomItem({room, activeSlug}: {room: Room, activeSlug: string | undefined}) {
+    const hasUnread = room?.notification_count;
+    const memberCount = 4;
 
 
-    const hasUnread = -1 > 0;
+    const activeRoom = room.slug === activeSlug
 
     return (
-        <button
-            className={`w-full p-4 flex items-start gap-3 hover:bg-accent transition-colors relative ${
-                1===1 ? "bg-accent" : ""
+        <Link
+            href={`/rooms/${room.slug}`}
+            className={`w-full cursor-pointer p-4 flex items-start gap-3 hover:bg-accent transition-colors relative ${
+                activeRoom ? "bg-accent" : ""
             }`}
         >
             {/* Unread indicator dot on the left edge */}
@@ -38,7 +25,7 @@ export function ChatRoomItem({room}: {room: Room}) {
 
             <div className="relative">
                 <Avatar className="mt-1">
-                    <AvatarFallback style={{ backgroundColor: 'red' }}>
+                    <AvatarFallback style={{ backgroundColor: room.avatar_color }}>
                         {getAvatarLetters(room.name)}
                     </AvatarFallback>
                 </Avatar>
@@ -49,7 +36,7 @@ export function ChatRoomItem({room}: {room: Room}) {
 
             <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center justify-between gap-2 mb-1">
-          <span className={`truncate ${1===1 ? "font-semibold text-foreground" : ""}`}>
+          <span className={`truncate ${hasUnread ? "font-semibold text-foreground" : ""}`}>
               {room.name}
           </span>
                     <span className="text-muted-foreground text-xs shrink-0">
@@ -57,19 +44,19 @@ export function ChatRoomItem({room}: {room: Room}) {
           </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className={`text-sm truncate ${1===1 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    <p className={`text-sm truncate ${hasUnread ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                         This is the last message
                     </p>
-                    {1===1 && (
+                    {room?.notification_count && (
                         <Badge className="shrink-0 bg-primary text-primary-foreground">
-                            4
+                            {room.notification_count}
                         </Badge>
                     )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                    SocketStack: 4
+                    SocketStack: {memberCount}
                 </p>
             </div>
-        </button>
+        </Link>
     );
 }

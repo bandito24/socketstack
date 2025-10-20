@@ -8,7 +8,8 @@ import ServerRequest from "@/utils/serverRequest.ts";
 export type Room = {
     id: number,
     slug: string,
-    name: string
+    name: string,
+    avatar_color: string,
     notification_count?: 0;
 }
 

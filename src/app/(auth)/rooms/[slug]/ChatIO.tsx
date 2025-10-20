@@ -40,10 +40,6 @@ export default function ChatIO({room}: { room: Room }) {
         if (!socket) return
 
 
-
-
-
-
         const handleConnect = () => {
             socket.emit("request-room", {room_id: ROOM_ID});
         };

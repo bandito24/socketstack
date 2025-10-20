@@ -46,6 +46,9 @@ export default class ServerRequest {
         const response = await fetch(url, options)
 
         let responseBody;
+        if(response.status == 204){
+            return {status: 204}
+        }
         try {
             responseBody = await response.json();
             //console.log('incoming:', responseBody)

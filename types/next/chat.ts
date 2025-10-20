@@ -55,6 +55,78 @@ export const mockMembers: Member[] = [
         avatarColor: '#FFD54F', // yellow
         isActive: false,
     },
+    {
+        id: 'u006',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u007',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u008',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u009',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u010',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u015',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u025',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u035',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u045',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u055',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u065',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
+    {
+        id: 'u075',
+        name: 'Ella Johnson',
+        avatarColor: '#FFD54F', // yellow
+        isActive: false,
+    },
 ];
 
 
@@ -89,39 +161,9 @@ export const mockMessages: Message[] = [
         content: "Yep, on it now!",
         timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), // 8 min ago
     },
+
 ];
 
-export const mockChatRooms: ChatRoom[] = [
-    {
-        id: 'r001',
-        name: 'Development Chat',
-        lastMessage: 'Yep, on it now!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), // 8 min ago
-        unreadCount: 2,
-        avatarColor: '#64B5F6', // blue
-        memberCount: 4,
-        members: mockMembers.slice(0, 4), // Alice, Brandon, Chloe, Diego
-    },
-    {
-        id: 'r002',
-        name: 'Design Team',
-        lastMessage: 'The new icon set looks awesome ✨',
-        timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(), // 1.5 hours ago
-        unreadCount: 0,
-        avatarColor: '#BA68C8', // purple
-        memberCount: 3,
-        members: mockMembers.slice(2, 5), // Chloe, Diego, Ella
-    },
-    {
-        id: 'r003',
-        name: 'Marketing Sync',
-        lastMessage: 'Meeting starts in 5 minutes ⏰',
-        timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 min ago
-        unreadCount: 5,
-        avatarColor: '#81C784', // green
-        memberCount: 2,
-        members: mockMembers.slice(1, 3), // Brandon, Chloe
-    },
-];
+
 
 

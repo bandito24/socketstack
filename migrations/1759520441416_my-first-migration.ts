@@ -15,6 +15,10 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             notNull: true,
             unique: true
         },
+        avatar_color: {
+            type: "varchar(20)",
+            notNull: true
+        },
         createdAt: {
             type: "timestamp",
             notNull: true,

@@ -1,20 +1,17 @@
 import {Search} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
-import {ChatRoomItem} from "@/app/components/ChatRoomItem.tsx";
-import {Room} from "@/contexts/RoomProvider.tsx";
-import {ChatRoom} from "@mytypes/next/chat.ts";
 import {CreateChatroom} from "@/app/(auth)/rooms/CreateChatRoom.tsx";
 import {JoinChatroom} from "@/app/(auth)/rooms/JoinChatRoom.tsx";
 import ChatRoomList from "@/app/components/ChatRoomList.tsx";
 
 
 
-export function ChatSidebar({rooms}: {rooms: ChatRoom[]}) {
+export function ChatSidebar() {
 
 
     return (
-        <div className="border-r border-border flex flex-col bg-card">
+        <div className="border-r border-border flex flex-1 flex-col bg-card overflow-hidden">
             <div className="p-4 border-b border-border">
                 <h2 className="mb-4">Messages</h2>
                 <div className="relative">
@@ -30,7 +27,7 @@ export function ChatSidebar({rooms}: {rooms: ChatRoom[]}) {
                 </div>
             </div>
 
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 overflow-y-scroll">
                <ChatRoomList />
             </ScrollArea>
         </div>

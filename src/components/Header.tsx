@@ -1,23 +1,13 @@
-import AuthButtons from "@/app/components/AuthButtons.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Bell, Search, Settings, User} from "lucide-react";
 import {
     DropdownMenu,
-    DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
+import AuthButtons from "@/app/components/AuthButtons.tsx";
 
 export default function Header() {
-
-
     return (
-        // <div className="flex justify-end m-5">
-        //     <AuthButtons/>
-        //
-        //
-        // </div>
         <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
                 <div
@@ -51,22 +41,7 @@ export default function Header() {
                             <User className="h-5 w-5"/>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                        <DropdownMenuSeparator/>
-                        <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4"/>
-                            <span>Profile</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Settings className="mr-2 h-4 w-4"/>
-                            <span>Settings</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator/>
-                        <DropdownMenuItem>
-                            <span>Log out</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
+                   <AuthButtons />
                 </DropdownMenu>
             </div>
         </header>

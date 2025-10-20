@@ -12,10 +12,9 @@ export default async function Page({
     params: Promise<{ slug: string }>
 }) {
 
-    // await authorizeServerRequest();
-    // const {slug} = await params
-    // console.log(slug)
-    // const room = await ServerRequest.get(`/rooms/${slug}`)
+    await authorizeServerRequest();
+    const {slug} = await params
+    const room = await ServerRequest.get(`/rooms/${slug}`)
 
 
     return (
@@ -29,7 +28,7 @@ export default async function Page({
         // </div>
         // <div className="w-full h-full flex flex-1 flex-col">
         <>
-        <ChatWindow />
+        <ChatWindow room={room} />
         </>
     )
 }

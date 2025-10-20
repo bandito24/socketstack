@@ -6,6 +6,8 @@ import {requireAuth} from "../middleware/auth.ts";
 import {z} from "zod";
 import {checkRoomExistence} from "#root/server/middleware/middleware.ts";
 import {hashMyPassword, verifyMyPassword} from "#root/server/utils/brcrypt.ts";
+import {dbPool} from "../db.ts";
+import getRandomAvatarColor from "#root/server/utils/avatar-colors.ts";
 
 
 export const roomRouter = express.Router()
@@ -38,6 +40,14 @@ roomRouter.post('/members', checkRoomExistence, async (req, res) => {
 
 })
 
+roomRouter.delete(`/:id/members`, async(req, res) => {
+    const {params, user} = req
+    if(user){
+        await dbPool.query('DELETE FROM room_users WHERE user_id = $1 AND room_id = $2', [user.id, params.id])
+    }
+    return res.status(204).send()
+})
+
 roomRouter.post('/', checkRoomExistence, async (req, res) => {
     const {name, password, slug} = req.body as { name: string, password: string | null, slug: string };
     const {user} = req;
@@ -47,7 +57,8 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
     }
 
 
-    const sql1 = 'INSERT INTO rooms (name, slug, password) VALUES ($1, $2, $3) RETURNING *';
+    const avatarColor = getRandomAvatarColor();
+    const sql1 = 'INSERT INTO rooms (name, slug, password, avatar_color) VALUES ($1, $2, $3, $4) RETURNING *';
     let hashPassword;
     if(password){
         hashPassword = await hashMyPassword(password)
@@ -56,7 +67,7 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
     }
 
 
-    const qRes = await db.query(sql1, [name, slug, hashPassword]);
+    const qRes = await db.query(sql1, [name, slug, hashPassword, avatarColor]);
 
 
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'
@@ -71,7 +82,7 @@ roomRouter.get('/:slug', async (req, res) => {
     const {slug} = req.params;
     const {user} = req;
 
-    const result = await db.query('SELECT r.id, r.name, r.slug FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1 AND r.slug = $2', [user?.id, slug])
+    const result = await db.query('SELECT r.id, r.name, r.slug, r.avatar_color FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1 AND r.slug = $2', [user?.id, slug])
     if (result.rowCount) {
         return res.status(200).json(result.rows[0])
     } else {
@@ -82,7 +93,7 @@ roomRouter.get('/:slug', async (req, res) => {
 
 roomRouter.get('/', async (req, res) => {
     const {user} = req;
-    const {rows} = await db.query('SELECT r.id, r.name, r.slug FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1', [user?.id])
+    const {rows} = await db.query('SELECT r.id, r.name, r.slug, r.avatar_color FROM rooms r JOIN room_users ru ON ru.room_id = r.id WHERE ru.user_id = $1', [user?.id])
     return res.status(200).json(rows)
 })
 
