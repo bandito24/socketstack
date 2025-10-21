@@ -14,7 +14,6 @@ export default function ChatInput({room, onSend}: { room: Room, onSend: (msg: st
         if(!val){
             return
         }
-        console.log(val)
         onSend(val)
         inputRef.current.value = ''
     }

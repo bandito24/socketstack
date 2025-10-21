@@ -2,7 +2,6 @@
 
 
 import useRoomContext from "@/contexts/RoomProvider.tsx";
-import {useQueryClient} from "@tanstack/react-query";
 import Link from "next/link";
 
 export default function RoomList(){

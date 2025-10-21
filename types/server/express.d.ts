@@ -19,6 +19,7 @@ declare global {
         interface Request {
             user?: User | null;
             room?: RoomType | null
+            room_id?: {room_id: number}
         }
     }
 }

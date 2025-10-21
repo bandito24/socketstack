@@ -1,4 +1,5 @@
 import {getAuthCookie} from "@/utils/sessionHeaders.tsx";
+import React from "react";
 
 export default class ServerRequest {
     static apiLocation = 'http://localhost:3000/api/'
@@ -81,6 +82,17 @@ export default class ServerRequest {
             ServerRequest.addHeader('Cookie', betterAuthCookie)
         }
 
+    }
+
+    static handleServerError(err: any, setServerError: React.Dispatch<React.SetStateAction<undefined | string>>){
+        if (err && typeof err === "object" && "public" in err) {
+            setServerError(err.public as string)
+        } else {
+            setServerError('An unexpected error occurred. Please try again soon.')
+        }
+        setTimeout(() => {
+            setServerError(undefined)
+        }, 5000)
     }
 
 

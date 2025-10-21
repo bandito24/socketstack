@@ -36,7 +36,7 @@ export function JoinChatroom() {
 
 
 
-    const hk = useRoomForm<typeof CreateRoomSchema>('/rooms/members', form)
+    const hk = useRoomForm<typeof CreateRoomSchema>('/rooms/room_users', form)
 
 
 

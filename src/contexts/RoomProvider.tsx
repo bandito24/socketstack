@@ -11,6 +11,7 @@ export type Room = {
     name: string,
     avatar_color: string,
     notification_count?: 0;
+    total_members: number
 }
 
 type RoomContextType = {

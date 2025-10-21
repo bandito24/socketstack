@@ -1,12 +1,10 @@
 'use client'
 import {Avatar, AvatarFallback} from "@/components/ui/avatar.tsx";
 import {ChevronRight, LogOut, MoreVertical, Send} from "lucide-react";
-import {MembersSheet} from "@/app/components/MembersSheet.tsx";
-import {ScrollArea} from "@/components/ui/scroll-area.tsx";
+import {MembersSheet} from "@/app/(auth)/rooms/[slug]/MembersSheet.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {MessageBubble} from "@/app/components/MessageBubble.tsx";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {mockMembers, mockMessages} from "@mytypes/next/chat.ts";
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -31,10 +29,12 @@ import {RoomEvent, ServerToClientEvents} from "@mytypes/IOTypes.ts";
 import {authClient} from "@/lib/auth-client.ts";
 import useSocketProvider from "@/contexts/SocketProvider.tsx";
 import MakeNotification from "@/utils/MakeNotification.ts";
+import ChatEventIndication from "@/app/(auth)/rooms/[slug]/ChatEventIndication.tsx";
+import {ScrollArea} from "@/components/ui/scroll-area.tsx";
+import {ScrollAreaViewport} from "@radix-ui/react-scroll-area";
 
 
-
-export function ChatWindow({room}: {room: Room}) {
+export function ChatWindow({room}: { room: Room }) {
     const [isMembersSheetOpen, setIsMembersSheetOpen] = useState(false);
     const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false)
     const [serverError, setServerError] = useState<undefined | string>(undefined)
@@ -51,10 +51,20 @@ export function ChatWindow({room}: {room: Room}) {
     const {data: session} = authClient.useSession()
     const {clientSocket: socket, setClientSocket} = useSocketProvider()
     const inputRef = useRef<HTMLInputElement>(null)
+    const scrollMessagesRef = useRef<HTMLDivElement>(null)
 
-    useEffect(()=> {
+    useEffect(() => {
         roomEventRef.current = roomEvents
-    },[roomEvents])
+        console.log(roomEvents)
+    }, [roomEvents])
+
+    useLayoutEffect(() => {
+        if (!scrollMessagesRef.current) return;
+
+        const el = scrollMessagesRef.current;
+        const lastMsg = el.lastElementChild;
+        lastMsg?.scrollIntoView({behavior: "smooth", block: "end"});
+    }, [roomEvents]);
 
 
     function onSend(e) {
@@ -64,7 +74,7 @@ export function ChatWindow({room}: {room: Room}) {
             return;
         }
         const content = inputRef?.current?.value.trim();
-        if(!content) return;
+        if (!content) return;
         inputRef.current!.value = ''
 
         socket.emit('msg', {room_id: ROOM_ID, msg: content})
@@ -105,9 +115,24 @@ export function ChatWindow({room}: {room: Room}) {
                 return handleExteriorRoomEvent(payload)
             }
 
+
             if (payload.type === 'member') {
                 setMemberStack(payload.memberStack)
+
+
+                if (roomEventRef?.current.length) { //For not having a bunch of duplicates about joining
+                    const [last] = roomEventRef?.current.slice(-1)
+                    const {username, status} = payload;
+                    if ("status" in last) {
+                        const {username: lastU, status: lastSt} = payload;
+                        if (lastSt === status && lastU === username) {
+                            return
+                        }
+                    }
+                }
             }
+
+
             setRoomEvents(prev => [...prev, payload])
         }
 
@@ -131,13 +156,14 @@ export function ChatWindow({room}: {room: Room}) {
             const response = {data: msgs, socketId: payload.socketId, room_id: ROOM_ID}
             if (socket) {
                 callback(response)
-                console.log('request sync emitted', response)            }
+                console.log('request sync emitted', response)
+            }
         }
 
         const handleRespondSync: ServerToClientEvents['respond-sync'] = (payload) => {
 
             console.log('response sync received', payload)
-            if(syncRef.current === true) return
+            if (syncRef.current === true) return
 
             if (payload.room_id !== ROOM_ID) {
                 return handleExteriorRoomEvent(payload)
@@ -170,13 +196,12 @@ export function ChatWindow({room}: {room: Room}) {
     }, [session, ROOM_ID, socket]);
 
 
-
     const leaveChatroom = useMutation({
-        mutationFn: () => ServerRequest.delete(`rooms/${room.id}/members`),
+        mutationFn: () => ServerRequest.delete(`rooms/${room.slug}/room_users`),
         onSuccess: () => {
 
             const filteredRooms = rooms.filter(val => val.id !== room.id);
-            if(filteredRooms.length){
+            if (filteredRooms.length) {
                 router.push(`/rooms/${filteredRooms[0].slug}`)
             } else {
                 router.push('/rooms')
@@ -192,16 +217,12 @@ export function ChatWindow({room}: {room: Room}) {
     })
 
 
-
-
-
-
     return (
         <div className="flex flex-col flex-1 bg-background">
             {/* Header */}
             <div className="p-4 border-b border-border bg-card flex items-center gap-3">
                 <Avatar>
-                    <AvatarFallback style={{ backgroundColor: "red" }}>
+                    <AvatarFallback style={{backgroundColor: room.avatar_color}}>
                         {getAvatarLetters(room.name)}
                     </AvatarFallback>
                 </Avatar>
@@ -212,14 +233,14 @@ export function ChatWindow({room}: {room: Room}) {
                         className="text-sm text-primary hover:underline flex items-center gap-1 group"
                     >
                         SocketStack: {4}
-                        <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform"/>
                     </button>
                 </div>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-5 w-5" />
+                            <MoreVertical className="h-5 w-5"/>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -227,11 +248,11 @@ export function ChatWindow({room}: {room: Room}) {
                             className="cursor-pointer text-destructive focus:text-destructive"
                             onClick={() => setIsLeaveDialogOpen(true)}
                         >
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="mr-2 h-4 w-4"/>
                             <span>Leave Room</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
-                    <ErrorMessage message={serverError} />
+                    <ErrorMessage message={serverError}/>
                 </DropdownMenu>
             </div>
 
@@ -261,15 +282,16 @@ export function ChatWindow({room}: {room: Room}) {
             <MembersSheet
                 isOpen={isMembersSheetOpen}
                 onClose={() => setIsMembersSheetOpen(false)}
-                members={mockMembers}
-                chatRoomName={"Bob room"}
+                room={room}
             />
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
-                {/*{mockMessages.map((message) => (*/}
-                {/*    <MessageBubble key={message.id} message={message} />*/}
-                {/*))}*/}
+            <ScrollArea className="flex-1 p-4 overflow-y-scroll">
+                <ScrollAreaViewport ref={scrollMessagesRef}>
+                    {roomEvents.map((evt, index) => (
+                        <ChatEventIndication username={session?.user?.username ?? ''} roomEvent={evt} key={index}/>
+                    ))}
+                </ScrollAreaViewport>
             </ScrollArea>
 
             {/* Input */}
@@ -281,7 +303,7 @@ export function ChatWindow({room}: {room: Room}) {
                         ref={inputRef}
                     />
                     <Button type={"submit"} size="icon">
-                        <Send className="h-4 w-4" />
+                        <Send className="h-4 w-4"/>
                     </Button>
                 </div>
             </form>

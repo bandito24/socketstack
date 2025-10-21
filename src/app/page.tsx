@@ -4,7 +4,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {authClient} from "@/lib/auth-client.ts";
 import LogoutButton from "@/app/(no-auth)/LogoutButton.tsx";
 import {getServerAuthSession} from "@/utils/getServerAuthSession.tsx";
-import Header from "@/components/Header.tsx";
+import Header from "@/components/header/Header.tsx";
 
 export default async function Home() {
     const data = await getServerAuthSession();

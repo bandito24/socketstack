@@ -2,7 +2,7 @@ type RequestBase = { room_id: string }
 type ServerAck =  RequestBase & { success: boolean, msg?: string, memberStack?: string[] }
 type ClientRoomMessage = RequestBase & { msg: string }
 export type MessageIOEvent = RequestBase & { type: 'msg', content: string, username: string, time: string }
-type MemberEvent = RequestBase & { type: 'member', username: string, time: string, memberStack: string[] } & (| { status: 'join' } | {
+export type MemberEvent = RequestBase & { type: 'member', username: string, time: string, memberStack: string[] } & (| { status: 'join' } | {
     status: 'leave'
 })
 export type RoomEvent = RequestBase & (MessageIOEvent | MemberEvent);

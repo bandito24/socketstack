@@ -1,25 +1,45 @@
-import {Member} from "@mytypes/next/chat.ts";
+'use client'
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle} from "@/components/ui/sheet.tsx";
 import {Users} from "lucide-react";
 import {Avatar, AvatarFallback} from "@/components/ui/avatar.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
+import {useQuery} from "@tanstack/react-query";
+import {Room} from "@/contexts/RoomProvider.tsx";
+import ServerRequest from "@/utils/serverRequest.ts";
+import {useEffect} from "react";
 
 interface MembersSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    members: Member[];
-    chatRoomName: string;
+    room: Room;
 }
 
 export function MembersSheet({
                                  isOpen,
                                  onClose,
-                                 members,
-                                 chatRoomName,
+                                 room,
                              }: MembersSheetProps) {
-    const activeMembers = members.filter((m) => m.isActive);
-    const inactiveMembers = members.filter((m) => !m.isActive);
+
+    const {data: members} = useQuery({
+        queryFn: async () =>{
+            console.log('hi')
+            const res = await ServerRequest.get(`/rooms/${room.slug}/room_users`)
+            console.log(res);
+            return res
+        },
+        queryKey: ['room', room.id, 'members'],
+    })
+
+    const {name: chatRoomName} = room
+
+
+
+
+    const activeMembers = [];
+    const inactiveMembers = [];
+    // const activeMembers = members.filter((m) => m.isActive);
+    // const inactiveMembers = members.filter((m) => !m.isActive);
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>

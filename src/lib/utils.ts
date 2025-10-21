@@ -24,3 +24,6 @@ export function getAvatarLetters(name: string): string {
   const firstWord = words[0];
   return firstWord.substring(0, 2).toUpperCase();
 }
+
+
+

@@ -8,7 +8,7 @@ import {SubmitHandler, useForm, UseFormReturn} from "react-hook-form";
 
 type RoomSchemas = typeof CreateRoomSchema | typeof JoinRoomSchema;
 export default function useRoomForm<T extends RoomSchemas>(
-    postEndpoint: '/rooms' | '/rooms/members',
+    postEndpoint: '/rooms' | '/rooms/room_users',
     form: UseFormReturn<JoinRoomSchemaType | CreateRoomSchemaType>,
     successFn?: () => void
 ) {
@@ -17,6 +17,7 @@ export default function useRoomForm<T extends RoomSchemas>(
     const queryClient = useQueryClient()
     const {setRooms} = useRoomContext();
     const [serverErr, setServerErr] = useState<undefined | string>(undefined)
+
 
     type SchemaData = z.infer<T>;
 

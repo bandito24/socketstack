@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header.tsx";
+import Header from "@/components/header/Header.tsx";
 import {SocketProvider} from "@/contexts/SocketProvider.tsx";
 import ReactQueryProvider from "@/contexts/ReactQueryProvider.tsx";
 

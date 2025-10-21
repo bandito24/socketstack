@@ -1,6 +1,7 @@
 import {Server, Socket} from "socket.io";
 import {dbPool} from "#root/server/db.ts";
 import type {ClientToServerEvents, ServerToClientEvents} from "#root/types/IOTypes.ts";
+import {ChatRoomStore} from "#root/server/lib/chatRoomStore.ts";
 
 export type SocketHandlerFn = (socket: Socket) => void
 
@@ -11,11 +12,13 @@ type RoomMembers = Set<UserName>
 
 const POLL_MS = 1000
 
+const store = ChatRoomStore.getInstance()
 
-const chatRooms: Map<RoomId, RoomMembers> = new Map();
+export const chatRooms: Map<RoomId, RoomMembers> = new Map();
 
-function authorizedRoomMessage(roomId: string, socketId: string) {
-    return chatRooms.get(roomId)?.has(socketId) ? true : false
+
+function authorizedRoomMessage(roomId: string, username: string) {
+    return chatRooms.get(roomId)?.has(username) ? true : false
 }
 
 function getUserId(socket: Socket) {
@@ -63,7 +66,6 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
                             } else {
                                 const payload = Array.isArray(payloads) ? payloads[0] : payloads;
 
-                                console.log(payload)
                                 io.to(payload.socketId).emit('respond-sync', payload)
                                 resolve(true)
                             }
@@ -81,7 +83,7 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
         })
 
         socket.on('msg', async ({room_id, msg}) => {
-            if (!authorizedRoomMessage(room_id, socket.id)) {
+            if (!authorizedRoomMessage(room_id, socket.data.username)) {
                 const permitted = await validateUserAndJoinRoom(userId, room_id, socket)
                 if (!permitted) {
                     socket.emit('notify', {
@@ -118,7 +120,7 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
             console.log('disconnecting')
             for (const room of rooms) {
                 if (room === socket.id) continue; // skip private room
-                chatRooms.get(room)?.delete(socket.id)
+                chatRooms.get(room)?.delete(socket.data.username)
                 console.log("User left room:", room);
             }
         })
@@ -135,7 +137,8 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
             if (socket.data?.activeRoom) {
                 console.log(`former active room id ${socket.data?.activeRoom}`)
                 const {activeRoom: oldRoom} = socket.data
-                chatRooms.get(oldRoom)?.delete(username)
+                chatRooms.get(oldRoom)?.delete(socket.data.username)
+
                 if (chatRooms.get(oldRoom)?.size) {
                     io.to(oldRoom).except(socket.id).emit('room-event', {
                         type: 'member',
@@ -152,7 +155,7 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
             if (!chatRooms.has(room_id)) {
                 chatRooms.set(room_id, new Set());
             }
-            chatRooms.get(room_id)?.add(username)
+            chatRooms.get(room_id)?.add(socket.data.username)
             socket.join(room_id)
             socket.data.activeRoom = room_id;
 

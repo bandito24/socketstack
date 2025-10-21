@@ -4,7 +4,7 @@ import {
     DropdownMenu,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
-import AuthButtons from "@/app/components/AuthButtons.tsx";
+import AuthButtons from "@/components/header/AuthButtons.tsx";
 
 export default function Header() {
     return (
