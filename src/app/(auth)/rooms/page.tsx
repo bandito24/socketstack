@@ -1,5 +1,6 @@
 
 export default async function RoomPage() {
+    console.log('RERENDERING ROOMPAGE')
 
 
     return (

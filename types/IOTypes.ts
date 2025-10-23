@@ -1,7 +1,7 @@
 type RequestBase = { room_id: string }
 type ServerAck =  RequestBase & { success: boolean, msg?: string, memberStack?: string[] }
 type ClientRoomMessage = RequestBase & { msg: string }
-export type MessageIOEvent = RequestBase & { type: 'msg', content: string, username: string, time: string }
+export type MessageIOEvent = RequestBase & { type: 'msg', content: string, username: string, time: string, stackCount: number }
 export type MemberEvent = RequestBase & { type: 'member', username: string, time: string, memberStack: string[] } & (| { status: 'join' } | {
     status: 'leave'
 })
@@ -17,7 +17,8 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
     'request-room': (payload: ServerAck) => void
     'notify': (payload: ServerAck) => void
-    'room-event': (payload: RoomEvent) => void
+    'member-event': (payload: MemberEvent) => void
+    'msg-event': (payload: MessageIOEvent) => void
     'respond-sync': (payload: RespondSync) => void
     'request-sync': (payload: RequestBase & { socketId: string}, callback: (response: RespondSync) => void) => void
 }

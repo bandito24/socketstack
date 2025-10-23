@@ -7,7 +7,6 @@ import {Badge} from "@/components/ui/badge.tsx";
 import {useQuery} from "@tanstack/react-query";
 import {Room} from "@/contexts/RoomProvider.tsx";
 import ServerRequest from "@/utils/serverRequest.ts";
-import {useEffect} from "react";
 
 interface MembersSheetProps {
     isOpen: boolean;
@@ -23,9 +22,7 @@ export function MembersSheet({
 
     const {data: members} = useQuery({
         queryFn: async () =>{
-            console.log('hi')
             const res = await ServerRequest.get(`/rooms/${room.slug}/room_users`)
-            console.log(res);
             return res
         },
         queryKey: ['room', room.id, 'members'],

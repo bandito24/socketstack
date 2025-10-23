@@ -18,9 +18,6 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
 
     return (
         <>
-
-
-            <RoomProvider>
                 <div className="flex-1 flex overflow-hidden">
                     <div className="w-80 flex flex-col overflow-hidden">
                         <ChatSidebar
@@ -28,7 +25,6 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
                     </div>
                     {children}
                 </div>
-            </RoomProvider>
         </>
     )
 }

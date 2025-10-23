@@ -9,6 +9,7 @@ import {hashMyPassword, verifyMyPassword} from "#root/server/utils/brcrypt.ts";
 import {dbPool} from "../db.ts";
 import getRandomAvatarColor from "#root/server/utils/avatar-colors.ts";
 import {roomUserRouter} from "#root/server/routes/room_users.ts";
+import {SocketStackStore} from "#root/server/lib/chatRoomStore.ts";
 
 
 export const roomRouter = express.Router()
@@ -76,6 +77,11 @@ roomRouter.get('/', async (req, res) => {
     const {rows} = await db.query(
         'SELECT r.id, r.name, r.slug, r.avatar_color, count(ru.user_id) AS total_members FROM rooms r JOIN room_users ru ON ru.room_id = r.id ' +
         'WHERE r.id IN (SELECT room_id FROM room_users WHERE user_id = $1) GROUP BY r.id', [user?.id])
+    if(req.query?.stack){
+        const STACK = SocketStackStore.getInstance();
+        rows.map(row => Object.assign(row, {stack_count: STACK.getUsers(row.id).length}))
+    }
+
     return res.status(200).json(rows)
 })
 

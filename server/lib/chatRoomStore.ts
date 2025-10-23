@@ -1,16 +1,15 @@
-import {chatRooms} from "#root/server/io";
 
 type RoomId = string
 type SocketId = string
 type UserName = string
 type RoomMembers = Set<UserName>
 
-export class ChatRoomStore {
-    private static instance: ChatRoomStore;
+export class SocketStackStore {
+    private static instance: SocketStackStore;
     private store: Map<RoomId, RoomMembers> = new Map();
 
     static getInstance() {
-        if(!this.instance) this.instance = new ChatRoomStore();
+        if(!this.instance) this.instance = new SocketStackStore();
         return this.instance
     }
 
@@ -23,19 +22,19 @@ export class ChatRoomStore {
         return Array.from(this.store?.get(roomId) ?? [])
     }
 
-    public deleteUser(roomId: RoomId, username: UserName) {
+    public popUser(roomId: RoomId, username: UserName) {
         return !!this.store?.get(roomId)?.delete(username)
     }
-    public belongsToRoom(roomId: RoomId, username: UserName){
+    public currentlyInStack(roomId: RoomId, username: UserName){
         return this.store.get(roomId)?.has(username) ? true : false
     }
-    public size(roomId: RoomId){
+    public roomSize(roomId: RoomId){
         return this.store.get(roomId)?.size ?? 0
     }
     public deleteRoom(roomId: RoomId){
         return this.store.delete(roomId)
     }
-    public setUser(roomId: RoomId, username: UserName){
+    public addUser(roomId: RoomId, username: UserName){
         if (!this.store.has(roomId)) {
             this.store.set(roomId, new Set());
         }

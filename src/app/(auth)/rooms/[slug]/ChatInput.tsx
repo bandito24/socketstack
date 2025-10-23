@@ -1,8 +1,6 @@
 'use client'
-import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
-import ChatMessages from "@/app/(auth)/rooms/[slug]/ChatMessages.tsx";
-import {Socket} from "socket.io";
 import {useRef} from "react";
+import {Room} from "@/contexts/RoomProvider.tsx";
 
 export default function ChatInput({room, onSend}: { room: Room, onSend: (msg: string) => void }) {
     const inputRef = useRef<HTMLInputElement>(null)

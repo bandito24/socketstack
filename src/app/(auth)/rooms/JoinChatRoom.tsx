@@ -40,6 +40,8 @@ export function JoinChatroom() {
 
 
 
+
+
     return (
         <Dialog open={hk.open} onOpenChange={hk.setOpen}>
             <DialogTrigger asChild>
@@ -57,6 +59,7 @@ export function JoinChatroom() {
                 </DialogHeader>
                 <form className="space-y-4 py-4" onSubmit={handleSubmit(hk.onSubmit)}>
                     <div className="space-y-2">
+                        <ErrorMessage message={hk.serverErr}/>
                         <Label htmlFor="join-room-name">Room Name</Label>
                         <Input
                             id="join-room-name"
@@ -90,7 +93,7 @@ export function JoinChatroom() {
                         </div>
                     )}
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => hk.setOpen(false)}>
+                        <Button type="button" variant="outline" onClick={hk.resetFormAndHide}>
                             Cancel
                         </Button>
                         <Button type={"submit"} disabled={false}>

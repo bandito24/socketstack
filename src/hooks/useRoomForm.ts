@@ -75,6 +75,8 @@ export default function useRoomForm<T extends RoomSchemas>(
         setServerErr(undefined)
         try {
             await mutation.mutateAsync(data)
+            setOpen(false)
+            setPasswordEnabled(false)
         } catch (e) {
             console.error(e)
 

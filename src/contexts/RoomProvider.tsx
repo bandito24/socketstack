@@ -11,7 +11,7 @@ export type Room = {
     name: string,
     avatar_color: string,
     notification_count?: 0;
-    total_members: number
+    total_members: number,
 }
 
 type RoomContextType = {
@@ -34,7 +34,7 @@ export function RoomProvider({children}: {children: ReactNode}){
     const { data } = useQuery({
         queryKey: ['rooms'],
         queryFn: async () => {
-            const res = await ServerRequest.get('/rooms');
+            const res = await ServerRequest.get('/rooms?stack=true');
             return res;
         },
     });

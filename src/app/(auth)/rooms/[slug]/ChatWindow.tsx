@@ -5,7 +5,6 @@ import {MembersSheet} from "@/app/(auth)/rooms/[slug]/MembersSheet.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
-import {mockMembers, mockMessages} from "@mytypes/next/chat.ts";
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel,
     AlertDialogContent,
@@ -14,7 +13,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {useRouter} from "next/navigation";
 import {getAvatarLetters} from "@/lib/utils.ts";
@@ -25,29 +24,30 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
-import {RoomEvent, ServerToClientEvents} from "@mytypes/IOTypes.ts";
+import {MessageIOEvent, RoomEvent, ServerToClientEvents} from "@mytypes/IOTypes.ts";
 import {authClient} from "@/lib/auth-client.ts";
 import useSocketProvider from "@/contexts/SocketProvider.tsx";
 import MakeNotification from "@/utils/MakeNotification.ts";
 import ChatEventIndication from "@/app/(auth)/rooms/[slug]/ChatEventIndication.tsx";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {ScrollAreaViewport} from "@radix-ui/react-scroll-area";
+import {toast, Toaster} from "sonner";
 
 
 export function ChatWindow({room}: { room: Room }) {
     const [isMembersSheetOpen, setIsMembersSheetOpen] = useState(false);
     const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false)
     const [serverError, setServerError] = useState<undefined | string>(undefined)
-    const {rooms, setRooms} = useRoomContext();
     const router = useRouter();
+    const queryClient = useQueryClient();
 
 
     const [isConnected, setIsConnected] = useState(false);
-    const [roomEvents, setRoomEvents] = useState<RoomEvent[]>([])
-    const [memberStack, setMemberStack] = useState<string[]>([])
+    const [roomEvents, setRoomEvents] = useState<MessageIOEvent[]>([])
+    const [memberStackCount, setMemberStackCount] = useState<number>(0)
     const syncRef = useRef<boolean>(false)
     const ROOM_ID = room.id.toString()
-    const roomEventRef = useRef<RoomEvent[]>([])
+    const roomEventRef = useRef<MessageIOEvent[]>([])
     const {data: session} = authClient.useSession()
     const {clientSocket: socket, setClientSocket} = useSocketProvider()
     const inputRef = useRef<HTMLInputElement>(null)
@@ -55,7 +55,7 @@ export function ChatWindow({room}: { room: Room }) {
 
     useEffect(() => {
         roomEventRef.current = roomEvents
-        console.log(roomEvents)
+        // console.log(roomEvents)
     }, [roomEvents])
 
     useLayoutEffect(() => {
@@ -80,6 +80,19 @@ export function ChatWindow({room}: { room: Room }) {
         socket.emit('msg', {room_id: ROOM_ID, msg: content})
     }
 
+    const showUserNotification = (action: "join" | "leave", username: string) => {
+        const message = action === "join"
+            ? `${username} joined the room`
+            : `${username} left the room`;
+
+        toast(message, {
+            duration: 2000,
+            position: "top-center",
+        });
+    };
+
+    const registerRef = useRef(false)
+
     useEffect(() => {
         if (!socket) return
 
@@ -87,87 +100,49 @@ export function ChatWindow({room}: { room: Room }) {
         const handleConnect = () => {
             socket.emit("request-room", {room_id: ROOM_ID});
         };
-        if (socket.connected) {
+        if (socket.connected && !registerRef.current) {
             handleConnect();
+            registerRef.current = true
         }
-
 
         const handleRequestRoom: ServerToClientEvents['request-room'] = (ack) => {
             const {success} = ack
             if (ack?.memberStack) {
-                setMemberStack(ack.memberStack)
+                setMemberStackCount(ack.memberStack.length)
             }
-            if (success) {
-                setIsConnected(true)
-            } else {
-                MakeNotification.alertFailed('')
-            }
-        }
-
-        function handleExteriorRoomEvent(payload: { room_id: string }) {
-            // if
+            success ? setIsConnected(true) : MakeNotification.alertFailed('')
 
         }
 
-
-        const handleRoomEvent: ServerToClientEvents['room-event'] = (payload) => {
-            if (payload.room_id !== ROOM_ID) {
-                return handleExteriorRoomEvent(payload)
-            }
-
-
-            if (payload.type === 'member') {
-                setMemberStack(payload.memberStack)
-
-
-                if (roomEventRef?.current.length) { //For not having a bunch of duplicates about joining
-                    const [last] = roomEventRef?.current.slice(-1)
-                    const {username, status} = payload;
-                    if ("status" in last) {
-                        const {username: lastU, status: lastSt} = payload;
-                        if (lastSt === status && lastU === username) {
-                            return
-                        }
-                    }
-                }
-            }
-
-
+        const handleMessageEvent: ServerToClientEvents['msg-event'] = (payload) => {
+            setMemberStackCount(payload.stackCount)
             setRoomEvents(prev => [...prev, payload])
         }
-
-        const handleNotify: ServerToClientEvents['notify'] = (payload) => {
-            if (payload.room_id !== ROOM_ID) {
-                return handleExteriorRoomEvent(payload)
+        const handleMemberEvent: ServerToClientEvents['member-event'] = (payload) => {
+            setMemberStackCount(payload.memberStack.length)
+            if (payload.username !== session?.user.username) {
+                showUserNotification(payload.status, payload.username)
             }
         }
 
+
         const handleRequestSync: ServerToClientEvents['request-sync'] = (payload, callback) => {
+            let msgs = roomEventRef.current;
 
-            if (payload.room_id !== ROOM_ID) {
-                return handleExteriorRoomEvent(payload)
-            }
-            const events = roomEventRef.current;
-
-
-            let msgs = events.filter(val => val.type === 'msg')
             if (msgs.length > 10) msgs = msgs.slice(-10)
 
             const response = {data: msgs, socketId: payload.socketId, room_id: ROOM_ID}
+            console.log('response sync sent', response)
             if (socket) {
                 callback(response)
-                console.log('request sync emitted', response)
             }
         }
 
         const handleRespondSync: ServerToClientEvents['respond-sync'] = (payload) => {
-
             console.log('response sync received', payload)
-            if (syncRef.current === true) return
+            if (syncRef.current) return
 
-            if (payload.room_id !== ROOM_ID) {
-                return handleExteriorRoomEvent(payload)
-            }
+
             setRoomEvents(prev => [...payload.data, ...prev])
             syncRef.current = true
         }
@@ -176,38 +151,51 @@ export function ChatWindow({room}: { room: Room }) {
             setIsConnected(false)
         }
 
+        const handleRequestRoomWrapper = (ack: any) => {
+            if (ack.room_id === ROOM_ID) handleRequestRoom(ack);
+        };
 
-        socket.on("request-room", handleRequestRoom);
-        socket.on("room-event", handleRoomEvent);
-        socket.on("notify", handleNotify);
+        const handleMessageEventWrapper = (payload: any) => {
+            if (payload.room_id === ROOM_ID) handleMessageEvent(payload);
+        };
+
+        const handleMemberEventWrapper = (payload: any) => {
+            if (payload.room_id === ROOM_ID) handleMemberEvent(payload);
+        };
+
+        const handleRequestSyncWrapper = (payload: any, callback: any) => {
+            if (payload.room_id === ROOM_ID) handleRequestSync(payload, callback);
+        };
+
+        const handleRespondSyncWrapper = (payload: any) => {
+            if (payload.room_id === ROOM_ID) handleRespondSync(payload);
+        };
+
+        // register
+        socket.on("request-room", handleRequestRoomWrapper);
+        socket.on("msg-event", handleMessageEventWrapper);
+        socket.on("member-event", handleMemberEventWrapper);
         socket.on("disconnect", handleDisconnect);
-        socket.on("request-sync", handleRequestSync);
-        socket.on("respond-sync", handleRespondSync);
-
+        socket.on("request-sync", handleRequestSyncWrapper);
+        socket.on("respond-sync", handleRespondSyncWrapper);
 
         return () => {
-            socket.off("request-room", handleRequestRoom);
-            socket.off("room-event", handleRoomEvent);
-            socket.off("notify", handleNotify);
+            socket.off("request-room", handleRequestRoomWrapper);
+            socket.off("msg-event", handleMessageEventWrapper);
+            socket.off("member-event", handleMemberEventWrapper);
             socket.off("disconnect", handleDisconnect);
-            socket.off("request-sync", handleRequestSync);
-            socket.off("respond-sync", handleRespondSync);
+            socket.off("request-sync", handleRequestSyncWrapper);
+            socket.off("respond-sync", handleRespondSyncWrapper);
         };
+
     }, [session, ROOM_ID, socket]);
 
 
     const leaveChatroom = useMutation({
         mutationFn: () => ServerRequest.delete(`rooms/${room.slug}/room_users`),
         onSuccess: () => {
-
-            const filteredRooms = rooms.filter(val => val.id !== room.id);
-            if (filteredRooms.length) {
-                router.push(`/rooms/${filteredRooms[0].slug}`)
-            } else {
-                router.push('/rooms')
-            }
-            setRooms(filteredRooms)
-
+            queryClient.invalidateQueries({queryKey: ['rooms']})
+            router.push('/rooms')
         }, onError: (error) => {
             setServerError('An Unexpected Error Occurred')
             setTimeout(() => {
@@ -219,6 +207,7 @@ export function ChatWindow({room}: { room: Room }) {
 
     return (
         <div className="flex flex-col flex-1 bg-background">
+            <Toaster/>
             {/* Header */}
             <div className="p-4 border-b border-border bg-card flex items-center gap-3">
                 <Avatar>
@@ -232,7 +221,7 @@ export function ChatWindow({room}: { room: Room }) {
                         onClick={() => setIsMembersSheetOpen(true)}
                         className="text-sm text-primary hover:underline flex items-center gap-1 group"
                     >
-                        SocketStack: {4}
+                        SocketStack: {memberStackCount}
                         <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform"/>
                     </button>
                 </div>
