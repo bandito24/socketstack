@@ -1,4 +1,5 @@
 import {MemberEvent, MessageIOEvent, RoomEvent} from "@mytypes/IOTypes.ts";
+import useTimeRefresh from "@/hooks/useTimeRefresh.ts";
 
 
 export default function ChatEventIndication({roomEvent: evt, username: hostUsername}: {
@@ -8,7 +9,7 @@ export default function ChatEventIndication({roomEvent: evt, username: hostUsern
 
     return (
         evt.type === 'msg' ?
-            <MessageIndication username={hostUsername} roomEvent={evt as MessageIOEvent}/> :
+            <MessageIndication  username={hostUsername} roomEvent={evt as MessageIOEvent}/> :
             <LeaveJoinIndication roomEvent={evt as MemberEvent}/>
     )
 }
@@ -16,6 +17,7 @@ export default function ChatEventIndication({roomEvent: evt, username: hostUsern
 
 function MessageIndication({roomEvent: evt, username: hostUsername}: { username: string, roomEvent: MessageIOEvent }) {
     const isOwn = evt.username === hostUsername
+    const {timeLabel} = useTimeRefresh({eventTime: evt.time})
 
     return (
         <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-4`}>
@@ -35,7 +37,7 @@ function MessageIndication({roomEvent: evt, username: hostUsername}: { username:
                     <p>{evt.content}</p>
                 </div>
                 <span className="text-xs text-muted-foreground px-3">
-          {evt.time}
+          {timeLabel}
         </span>
             </div>
         </div>

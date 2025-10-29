@@ -11,9 +11,12 @@ import {
 import {Settings, User} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {authClient} from "@/lib/auth-client.ts";
+import {useDisplayComponentStore} from "@/hooks/useDisplayComponentStore.ts";
 
 export default function AuthButtons() {
     const {data: session} = useClientAuthSession()
+
+    const setShowProfile = useDisplayComponentStore((state) => state.setShowProfile)
     const signedIn = !!session
 
    if (signedIn){
@@ -21,7 +24,7 @@ export default function AuthButtons() {
            <DropdownMenuContent align="end" className="w-56">
                <DropdownMenuLabel>My Account</DropdownMenuLabel>
                <DropdownMenuSeparator/>
-               <DropdownMenuItem>
+               <DropdownMenuItem onClick={() => setShowProfile(true)}>
                    <User className="mr-2 h-4 w-4"/>
                    <span>Profile</span>
                </DropdownMenuItem>

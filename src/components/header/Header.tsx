@@ -5,6 +5,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import AuthButtons from "@/components/header/AuthButtons.tsx";
+import UserButton from "@/components/header/UserButton.tsx";
 
 export default function Header() {
     return (
@@ -35,14 +36,7 @@ export default function Header() {
                 </Button>
 
                 {/* User Profile Menu */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-gray-600 hover:text-gray-900">
-                            <User className="h-5 w-5"/>
-                        </Button>
-                    </DropdownMenuTrigger>
-                   <AuthButtons />
-                </DropdownMenu>
+                <UserButton/>
             </div>
         </header>
 

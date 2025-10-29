@@ -32,6 +32,7 @@ import ChatEventIndication from "@/app/(auth)/rooms/[slug]/ChatEventIndication.t
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {ScrollAreaViewport} from "@radix-ui/react-scroll-area";
 import {toast, Toaster} from "sonner";
+import {BaseClockProvider} from "@/contexts/BaseClockProvider.tsx";
 
 
 export function ChatWindow({room}: { room: Room }) {
@@ -44,7 +45,7 @@ export function ChatWindow({room}: { room: Room }) {
 
     const [isConnected, setIsConnected] = useState(false);
     const [roomEvents, setRoomEvents] = useState<MessageIOEvent[]>([])
-    const [memberStackCount, setMemberStackCount] = useState<number>(0)
+    const [memberStack, setMemberStack] = useState<string[]>([])
     const syncRef = useRef<boolean>(false)
     const ROOM_ID = room.id.toString()
     const roomEventRef = useRef<MessageIOEvent[]>([])
@@ -55,7 +56,6 @@ export function ChatWindow({room}: { room: Room }) {
 
     useEffect(() => {
         roomEventRef.current = roomEvents
-        // console.log(roomEvents)
     }, [roomEvents])
 
     useLayoutEffect(() => {
@@ -108,18 +108,17 @@ export function ChatWindow({room}: { room: Room }) {
         const handleRequestRoom: ServerToClientEvents['request-room'] = (ack) => {
             const {success} = ack
             if (ack?.memberStack) {
-                setMemberStackCount(ack.memberStack.length)
+                setMemberStack(ack.memberStack)
             }
             success ? setIsConnected(true) : MakeNotification.alertFailed('')
 
         }
 
         const handleMessageEvent: ServerToClientEvents['msg-event'] = (payload) => {
-            setMemberStackCount(payload.stackCount)
             setRoomEvents(prev => [...prev, payload])
         }
         const handleMemberEvent: ServerToClientEvents['member-event'] = (payload) => {
-            setMemberStackCount(payload.memberStack.length)
+            setMemberStack(payload.memberStack)
             if (payload.username !== session?.user.username) {
                 showUserNotification(payload.status, payload.username)
             }
@@ -132,14 +131,12 @@ export function ChatWindow({room}: { room: Room }) {
             if (msgs.length > 10) msgs = msgs.slice(-10)
 
             const response = {data: msgs, socketId: payload.socketId, room_id: ROOM_ID}
-            console.log('response sync sent', response)
             if (socket) {
                 callback(response)
             }
         }
 
         const handleRespondSync: ServerToClientEvents['respond-sync'] = (payload) => {
-            console.log('response sync received', payload)
             if (syncRef.current) return
 
 
@@ -221,7 +218,7 @@ export function ChatWindow({room}: { room: Room }) {
                         onClick={() => setIsMembersSheetOpen(true)}
                         className="text-sm text-primary hover:underline flex items-center gap-1 group"
                     >
-                        SocketStack: {memberStackCount}
+                        SocketStack: {memberStack.length}
                         <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform"/>
                     </button>
                 </div>
@@ -271,16 +268,19 @@ export function ChatWindow({room}: { room: Room }) {
             <MembersSheet
                 isOpen={isMembersSheetOpen}
                 onClose={() => setIsMembersSheetOpen(false)}
+                memberStack={memberStack}
                 room={room}
             />
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4 overflow-y-scroll">
-                <ScrollAreaViewport ref={scrollMessagesRef}>
-                    {roomEvents.map((evt, index) => (
-                        <ChatEventIndication username={session?.user?.username ?? ''} roomEvent={evt} key={index}/>
-                    ))}
-                </ScrollAreaViewport>
+                <BaseClockProvider>
+                    <ScrollAreaViewport ref={scrollMessagesRef}>
+                        {roomEvents.map((evt, index) => (
+                            <ChatEventIndication username={session?.user?.username ?? ''} roomEvent={evt} key={index}/>
+                        ))}
+                    </ScrollAreaViewport>
+                </BaseClockProvider>
             </ScrollArea>
 
             {/* Input */}

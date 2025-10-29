@@ -17,10 +17,12 @@ import {CreateRoomSchema, JoinRoomSchema} from "#root/form-schemas.ts";
 import {z} from "zod";
 import useRoomForm from "@/hooks/useRoomForm.ts";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
+import {JoinCreateRoomProps} from "@/app/(auth)/rooms/CreateChatRoom.tsx";
+import {cn} from "@/lib/utils.ts";
 
 
 
-export function JoinChatroom() {
+export function JoinChatroom({btnVariant}: JoinCreateRoomProps) {
     type SchemaType = z.infer<typeof CreateRoomSchema>;
 
     const form = useForm<SchemaType>({resolver: zodResolver(JoinRoomSchema), defaultValues: {
@@ -45,7 +47,10 @@ export function JoinChatroom() {
     return (
         <Dialog open={hk.open} onOpenChange={hk.setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className={cn('w-full',
+                    btnVariant === 'main' && 'w-full gap-2',
+                    btnVariant === 'sidebar' && ''
+                    )}>
                     <UserPlus className="h-4 w-4" />
                     Join Room
                 </Button>

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header/Header.tsx";
 import {SocketProvider} from "@/contexts/SocketProvider.tsx";
 import ReactQueryProvider from "@/contexts/ReactQueryProvider.tsx";
+import ProfileSheet from "@/components/ProfileSheet.tsx";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -36,10 +37,11 @@ export default function RootLayout({
         >
         <div className="size-full flex flex-col h-screen">
             <ReactQueryProvider>
-                <SocketProvider>
-                    <Header/>
-                    {children}
-                </SocketProvider>
+                <Header/>
+                {children}
+
+                <ProfileSheet />
+
             </ReactQueryProvider>
         </div>
         </body>

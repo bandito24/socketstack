@@ -53,7 +53,6 @@ export default function JoinRoom() {
 
 
     const onSubmit: SubmitHandler<SchemaType> = async (data) => {
-        // console.log(data)
         try {
             await mutation.mutateAsync(data)
         } catch (e) {

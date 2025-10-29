@@ -20,7 +20,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             notNull: true
         },
         createdAt: {
-            type: "timestamp",
+            type: "timestamptz",
             notNull: true,
             default: pgm.func("current_timestamp"),
         },
@@ -40,7 +40,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             onDelete: 'CASCADE'
         },
         joined_at: {
-            type: "timestamp",
+            type: "timestamptz",
             notNull: true,
             default: pgm.func("current_timestamp"),
         },

@@ -21,12 +21,15 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
         if (socket.recovered) {
             console.log("CONNECTION STATE WAS RECOVERED")
             // recovery was successful: socket.id, socket.rooms and socket.data were restored
-        } else {
-            // new or unrecoverable session
         }
 
-
         const userId = getUserId(socket);
+        if (userId) {
+            const {rows} = await dbPool.query('SELECT room_id FROM room_users where user_id = $1', [userId])
+            for (const row of rows) {
+                socket.join(row.room_id.toString())
+            }
+        }
         const {rows} = await dbPool.query('SELECT username FROM users where id = $1', [userId])
         if (!rows.length) {
             socket.emit('notify', {room_id: '-1', success: false, msg: 'You do not have a valid user ID'})
@@ -39,7 +42,6 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
         socket.on('request-room', async (payload) => {
             const {room_id} = payload
             if (socket.data?.activeRoom === payload.room_id && STORE.currentlyInStack(room_id, socket.data?.username)) {
-                console.log("Ignoring duplicate join request for same room");
                 return;
             }
 
@@ -58,7 +60,6 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
                         }, (err, payloads) => {
                             if (err) {
                                 resolve(false)
-                                console.log('FAILED')
                             } else {
                                 const payload = Array.isArray(payloads) ? payloads[0] : payloads;
 
@@ -108,28 +109,27 @@ export function registerSocketHandlers(io: Server<ClientToServerEvents, ServerTo
             if (!socket) {
                 return
             }
-            console.log('attempting to send', payload)
             io.to(payload.socketId).emit('respond-sync', payload)
         })
 
 
         socket.on('disconnecting', () => {
             const {rooms} = socket;
-            console.log('disconnecting')
             for (const room_id of rooms) {
                 if (room_id === socket.id) continue; // skip private room
-                STORE.popUser(room_id, socket.data.username)
+                const userRemoved = STORE.popUser(room_id, socket.data.username, socket.id)
 
-                io.to(room_id).emit('member-event', {
-                    type: 'member',
-                    status: 'leave',
-                    username: socket.data.username,
-                    time: getDateTimeStr(),
-                    memberStack: STORE.getUsers(room_id),
-                    room_id,
-                });
+                if(userRemoved){ //Dont want to alert user left if just closed a tab
+                    io.to(room_id).emit('member-event', {
+                        type: 'member',
+                        status: 'leave',
+                        username: socket.data.username,
+                        time: getDateTimeStr(),
+                        memberStack: STORE.getUsers(room_id),
+                        room_id,
+                    });
+                }
 
-                console.log("User left room:", room_id);
             }
         })
 
@@ -147,31 +147,35 @@ async function validateUserAndJoinRoom(io: Server, userId: string, room_id: stri
         const {username} = socket.data;
         if (socket.data?.activeRoom && socket.data.activeRoom != room_id) {
             const {activeRoom: oldRoom} = socket.data
-            STORE.popUser(oldRoom, socket.data.username)
+            const userRemoved = STORE.popUser(oldRoom, socket.data.username, socket.id)
 
-            io.to(oldRoom).emit('member-event', {
-                type: 'member',
-                status: 'leave',
-                username: username,
-                time: getDateTimeStr(),
-                memberStack: STORE.getUsers(oldRoom),
-                room_id: oldRoom
-            })
+            if(userRemoved){
+                io.to(oldRoom).emit('member-event', {
+                    type: 'member',
+                    status: 'leave',
+                    username: username,
+                    time: getDateTimeStr(),
+                    memberStack: STORE.getUsers(oldRoom),
+                    room_id: oldRoom
+                })
+            }
 
         }
 
-        STORE.addUser(room_id, socket.data.username)
-        socket.join(room_id)
+        const newUser = STORE.addUser(room_id, socket.data.username, socket.id)
+        // socket.join(room_id)
         socket.data.activeRoom = room_id;
 
-        io.to(room_id).emit('member-event', {
-            type: 'member',
-            status: 'join',
-            username: username,
-            time: getDateTimeStr(),
-            memberStack: STORE.getUsers(room_id),
-            room_id: room_id
-        })
+        if (newUser) { //Do not want to alert new user if just opening a new tab
+            io.to(room_id).emit('member-event', {
+                type: 'member',
+                status: 'join',
+                username: username,
+                time: getDateTimeStr(),
+                memberStack: STORE.getUsers(room_id),
+                room_id: room_id
+            })
+        }
         const memberStack = STORE.getUsers(room_id)
         socket.emit('request-room', {success: true, memberStack: memberStack, room_id: room_id})
         return true
@@ -187,12 +191,5 @@ async function validateUserAndJoinRoom(io: Server, userId: string, room_id: stri
 
 
 function getDateTimeStr() {
-    return new Date().toLocaleString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-    })
-        .replace(',', '');
+    return new Date().toISOString();
 }

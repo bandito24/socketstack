@@ -4,6 +4,7 @@ import {ReactNode} from "react";
 import {auth} from "../../../server/auth.ts";
 import {ChatSidebar} from "@/app/(auth)/rooms/ChatSidebar.tsx";
 import {RoomProvider} from "@/contexts/RoomProvider.tsx";
+import {SocketProvider} from "@/contexts/SocketProvider.tsx";
 
 
 export default async function AuthLayout({children}: { children: ReactNode }) {
@@ -18,6 +19,8 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
 
     return (
         <>
+            <RoomProvider>
+                <SocketProvider>
                 <div className="flex-1 flex overflow-hidden">
                     <div className="w-80 flex flex-col overflow-hidden">
                         <ChatSidebar
@@ -25,6 +28,9 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
                     </div>
                     {children}
                 </div>
+                </SocketProvider>
+            </RoomProvider>
+
         </>
     )
 }

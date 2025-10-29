@@ -17,9 +17,14 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
 import {CreateRoomSchema, CreateRoomSchemaType} from "#root/form-schemas.ts";
 import useRoomForm from "@/hooks/useRoomForm.ts";
+import {cn} from "@/lib/utils.ts";
 
 
-export function CreateChatroom() {
+export type JoinCreateRoomProps = {
+    btnVariant: 'main' | 'sidebar'
+}
+
+export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
 
     const form = useForm<CreateRoomSchemaType>({resolver: zodResolver(CreateRoomSchema),  defaultValues: {
             name: "",
@@ -39,7 +44,10 @@ export function CreateChatroom() {
     return (
         <Dialog open={hk.open} onOpenChange={hk.setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className={cn("w-full",
+                    btnVariant === 'main' && 'text-md text-white font-bold gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700',
+                    btnVariant === 'sidebar' && ''
+                    )}>
                     <Plus className="h-4 w-4"/>
                     Create Room
                 </Button>

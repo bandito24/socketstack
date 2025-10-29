@@ -58,6 +58,6 @@ export const AVATAR_COLORS = [
     // ⚪ Neutrals & Accents
     "#94A3B8", // slate-400
     "#64748B", // slate-500
-    "#475569", // slate-600
-    "#0F172A", // slate-900
+    // "#475569", // slate-600
+    // "#0F172A", // slate-900
 ];

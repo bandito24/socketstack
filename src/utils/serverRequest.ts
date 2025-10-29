@@ -52,7 +52,6 @@ export default class ServerRequest {
         }
         try {
             responseBody = await response.json();
-            //console.log('incoming:', responseBody)
         } catch (e) {
             responseBody = null;
         }

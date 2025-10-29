@@ -1,8 +1,9 @@
 
 type RoomId = string
-type SocketId = string
 type UserName = string
-type RoomMembers = Set<UserName>
+type SocketId = string
+type RoomMembers = Map<UserName, Set<SocketId>> //Each username maps to a series of sockets
+//This allows for a user to have multiple tabs without breaking architecture
 
 export class SocketStackStore {
     private static instance: SocketStackStore;
@@ -19,27 +20,38 @@ export class SocketStackStore {
 
 
     public getUsers(roomId: RoomId) {
-        return Array.from(this.store?.get(roomId) ?? [])
+        return Array.from(this.store?.get(roomId)?.keys() ?? [])
     }
 
-    public popUser(roomId: RoomId, username: UserName) {
-        return !!this.store?.get(roomId)?.delete(username)
+    public popUser(roomId: RoomId, username: UserName, socketId: SocketId): boolean {
+        const userSet = this.store?.get(roomId)?.get(username)
+        if(!userSet) return false
+
+        userSet.delete(socketId)
+        if(!userSet.size){
+            this.store?.get(roomId)?.delete(username)
+            return true
+        }
+        return false
     }
     public currentlyInStack(roomId: RoomId, username: UserName){
-        return this.store.get(roomId)?.has(username) ? true : false
+        return !!this.store.get(roomId)?.get(username)?.size
     }
     public roomSize(roomId: RoomId){
         return this.store.get(roomId)?.size ?? 0
     }
-    public deleteRoom(roomId: RoomId){
-        return this.store.delete(roomId)
-    }
-    public addUser(roomId: RoomId, username: UserName){
-        if (!this.store.has(roomId)) {
-            this.store.set(roomId, new Set());
-        }
 
-        const room = this.store.get(roomId)!;
-        room.add(username);
+    public addUser(roomId: RoomId, username: UserName, socketId: string): boolean{
+        let userInit: boolean = false;
+        if (!this.store.has(roomId)) {
+            this.store.set(roomId, new Map());
+        }
+        if(!this.store.get(roomId)!.has(username)){
+            this.store.get(roomId)!.set(username, new Set())
+            userInit = true
+        }
+        this.store.get(roomId)!.get(username)!.add(socketId)
+        return userInit
+
     }
 }

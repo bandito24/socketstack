@@ -7,36 +7,60 @@ import {Badge} from "@/components/ui/badge.tsx";
 import {useQuery} from "@tanstack/react-query";
 import {Room} from "@/contexts/RoomProvider.tsx";
 import ServerRequest from "@/utils/serverRequest.ts";
+import {useEffect, useState} from "react";
+import {getAvatarLetters} from "@/lib/utils.ts";
+import {username} from "better-auth/plugins";
 
 interface MembersSheetProps {
     isOpen: boolean;
     onClose: () => void;
     room: Room;
+    memberStack: string[]
+}
+interface MembersDistType {
+    inactiveMembers: string[],
+    activeMembers: string[]
 }
 
 export function MembersSheet({
                                  isOpen,
                                  onClose,
                                  room,
+                                 memberStack,
                              }: MembersSheetProps) {
 
-    const {data: members} = useQuery({
-        queryFn: async () =>{
+    const [membersDist, setMemberDist] = useState<MembersDistType>({inactiveMembers: [], activeMembers: []})
+
+    const {data: fetchedMembers} = useQuery({
+        queryFn: async () => {
             const res = await ServerRequest.get(`/rooms/${room.slug}/room_users`)
             return res
         },
-        queryKey: ['room', room.id, 'members'],
+        queryKey: ['room_users', room.id],
+        enabled: isOpen
     })
 
     const {name: chatRoomName} = room
 
 
+    useEffect(()=> {
+        if(!fetchedMembers) return
+
+        const memberSet = new Set(memberStack)
+
+        const active: string[] = [];
+        const inactive: string[] = [];
 
 
-    const activeMembers = [];
-    const inactiveMembers = [];
-    // const activeMembers = members.filter((m) => m.isActive);
-    // const inactiveMembers = members.filter((m) => !m.isActive);
+        fetchedMembers.forEach((member: {username: string}) => {
+            if(memberSet.has(member.username)) active.push(member.username)
+            else inactive.push(member.username)
+        })
+        setMemberDist({inactiveMembers: inactive, activeMembers: active})
+
+
+    }, [memberStack, fetchedMembers])
+
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
@@ -46,32 +70,33 @@ export function MembersSheet({
                     <SheetDescription>{chatRoomName}</SheetDescription>
                 </SheetHeader>
 
-                <ScrollArea className="h-[calc(100vh-8rem)] mt-6">
+                <ScrollArea className="h-[calc(100vh-8rem)] mt-6 ml-2">
                     <div className="space-y-6">
                         {/* Active Members */}
                         <div>
                             <div className="flex items-center gap-2 mb-3">
-                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <Users className="h-4 w-4 text-muted-foreground"/>
                                 <h4 className="text-sm text-muted-foreground">
-                                    Active — {activeMembers.length}
+                                    Active — {membersDist.activeMembers.length}
                                 </h4>
                             </div>
                             <div className="space-y-2">
-                                {activeMembers.map((member) => (
+                                {membersDist.activeMembers.map((member) => (
                                     <div
-                                        key={member.id}
+                                        key={member}
                                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                     >
                                         <div className="relative">
                                             <Avatar>
-                                                <AvatarFallback style={{ backgroundColor: member.avatarColor }}>
-                                                    {member.name.substring(0, 2).toUpperCase()}
+                                                <AvatarFallback style={{backgroundColor: "green"}}>
+                                                    {getAvatarLetters(member)}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                                            <div
+                                                className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"/>
                                         </div>
                                         <div className="flex-1">
-                                            <p>{member.name}</p>
+                                            <p>{member}</p>
                                         </div>
                                         <Badge variant="secondary" className="text-xs">
                                             Active
@@ -82,30 +107,31 @@ export function MembersSheet({
                         </div>
 
                         {/* Inactive Members */}
-                        {inactiveMembers.length > 0 && (
+                        {membersDist.inactiveMembers.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                    <Users className="h-4 w-4 text-muted-foreground"/>
                                     <h4 className="text-sm text-muted-foreground">
-                                        Offline — {inactiveMembers.length}
+                                        Offline — {membersDist.inactiveMembers.length}
                                     </h4>
                                 </div>
                                 <div className="space-y-2">
-                                    {inactiveMembers.map((member) => (
+                                    {membersDist.inactiveMembers.map((member) => (
                                         <div
-                                            key={member.id}
+                                            key={member}
                                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                         >
                                             <div className="relative">
                                                 <Avatar className="opacity-60">
-                                                    <AvatarFallback style={{ backgroundColor: member.avatarColor }}>
-                                                        {member.name.substring(0, 2).toUpperCase()}
+                                                    <AvatarFallback style={{backgroundColor: "green"}}>
+                                                        {getAvatarLetters(member)}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-muted-foreground rounded-full border-2 border-background" />
+                                                <div
+                                                    className="absolute bottom-0 right-0 w-3 h-3 bg-muted-foreground rounded-full border-2 border-background"/>
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-muted-foreground">{member.name}</p>
+                                                <p className="text-muted-foreground">{member}</p>
                                             </div>
                                             <Badge variant="outline" className="text-xs">
                                                 Offline

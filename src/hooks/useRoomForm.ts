@@ -71,7 +71,6 @@ export default function useRoomForm<T extends RoomSchemas>(
     }
 
     const onSubmit: SubmitHandler<SchemaData> = async (data) => {
-        // console.log(data)
         setServerErr(undefined)
         try {
             await mutation.mutateAsync(data)

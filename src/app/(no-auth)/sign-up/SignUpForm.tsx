@@ -29,8 +29,6 @@ export default function SignUpForm() {
             password: form.password, // required
             username: form.username, // required
         }, {
-            onRequest: () => console.log("Loading..."),
-            onSuccess: (ctx) => console.log("Success:", ctx),
             onError: (ctx) => {
                 const {error} = ctx;
                 if ("message" in error) {
