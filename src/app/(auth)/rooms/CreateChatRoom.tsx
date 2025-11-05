@@ -12,12 +12,14 @@ import {Button} from "@/components/ui/button.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Switch} from "@/components/ui/switch.tsx";
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
 import {CreateRoomSchema, CreateRoomSchemaType} from "#root/form-schemas.ts";
 import useRoomForm from "@/hooks/useRoomForm.ts";
 import {cn} from "@/lib/utils.ts";
+import {useEffect, useState} from "react";
+import {Textarea} from "@/components/ui/textarea.tsx";
 
 
 export type JoinCreateRoomProps = {
@@ -26,28 +28,54 @@ export type JoinCreateRoomProps = {
 
 export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
 
-    const form = useForm<CreateRoomSchemaType>({resolver: zodResolver(CreateRoomSchema),  defaultValues: {
+    const form = useForm<CreateRoomSchemaType>({
+        resolver: zodResolver(CreateRoomSchema), defaultValues: {
             name: "",
             password: "",
-        }});
+            confirm_password: "",
+            description: "",
+            broadcasting: false
+        }
+    });
 
     const {
         register,
         handleSubmit,
         formState: {errors},
     } = form
+    const [broadcasting, setBroadcasting] = useState(false)
+    const [broadcastingError, setBroadcastingError] = useState<undefined | string>(undefined)
 
 
     const hk = useRoomForm<typeof CreateRoomSchema>('/rooms', form)
+    useEffect(() => {
+        if (hk.passwordEnabled) {
+            setBroadcasting(false)
+            hk.form.setValue('description', null)
+            hk.form.setValue('broadcasting', false)
+        }
+    }, [hk.passwordEnabled])
+
+    function handleSetBroadCasting(broadcast: boolean) {
+        if (!broadcast || !hk.passwordEnabled) {
+            setBroadcasting(broadcast)
+            return
+        }
+        hk.form.setValue('broadcasting', false)
+        setBroadcastingError('You cannot add a private room to the SocketStack Hub')
+        setTimeout(() => {
+            setBroadcastingError(undefined)
+        }, 5000)
+    }
 
 
     return (
         <Dialog open={hk.open} onOpenChange={hk.setOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("w-full",
-                    btnVariant === 'main' && 'text-md text-white font-bold gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700',
+                    btnVariant === 'main' && 'p-4 text-md text-white font-bold gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700',
                     btnVariant === 'sidebar' && ''
-                    )}>
+                )}>
                     <Plus className="h-4 w-4"/>
                     Create Room
                 </Button>
@@ -71,6 +99,51 @@ export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
                         />
                         <ErrorMessage message={errors?.name?.message}/>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="broadcast-toggle">Broadcast to Room Hub</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Make this room discoverable in the Room Hub
+                            </p>
+
+                            <ErrorMessage message={broadcastingError}/>
+                        </div>
+
+                        <Controller
+                            control={form.control}
+                            name="broadcasting"
+                            render={({field}) => (
+                                <Switch
+                                    id="broadcast-toggle"
+                                    checked={field.value}
+                                    onCheckedChange={(val) => {
+                                        field.onChange(val)
+                                        handleSetBroadCasting(val)
+
+                                    }}
+                                />
+                            )}
+                        />
+
+                    </div>
+
+                    {broadcasting && (
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Room Description</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Describe what this room is about..."
+                                {...register('description')}
+
+                                rows={3}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Help others understand the purpose of your room
+                            </p>
+                            <ErrorMessage message={errors.description?.message} />
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">

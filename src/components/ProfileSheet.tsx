@@ -15,6 +15,7 @@ import {useEffect} from "react";
 import useClientAuthSession from "@/utils/useClientAuthSession.tsx";
 import {getAvatarLetters} from "@/lib/utils.ts";
 import {formatDistanceToNow} from "date-fns";
+import {useMutation} from "@tanstack/react-query";
 
 export default function ProfileSheet(){
     console.log('rerendered profile sheet')
@@ -26,6 +27,11 @@ export default function ProfileSheet(){
         return null
     }
     const {user} = data
+
+
+    // const mutation = useMutation({
+    //     mutationFn
+    // })
 
 
 
@@ -42,18 +48,14 @@ export default function ProfileSheet(){
                     </SheetDescription>
 
 
-                    {/*<SheetClose asChild className="absolute top-2 right-2">*/}
-                    {/*    <Button variant="ghost" size="icon">*/}
-                    {/*        <X className="h-4 w-4" />*/}
-                    {/*    </Button>*/}
-                    {/*</SheetClose>*/}
+
 
                 </SheetHeader>
 
                 <div className="mt-8 flex flex-col items-center gap-6 p-4">
                     {/* Avatar */}
                     <Avatar className="h-24 w-24">
-                        <AvatarFallback style={{ backgroundColor: 'red' }}>
+                        <AvatarFallback style={{ backgroundColor: user.avatar_color}}>
                             <span className="text-white text-4xl">{getAvatarLetters(user.username ?? '')}</span>
                         </AvatarFallback>
                     </Avatar>
@@ -62,49 +64,48 @@ export default function ProfileSheet(){
                     <div className="w-full space-y-4">
                         <div className="space-y-1">
                             <p className="text- text-gray-500">Username</p>
-                            <p className="text-gray-900">{user.username}</p>
+                            <p className="">{user.username}</p>
                         </div>
 
                         <div className="space-y-1">
                             <p className="text-sm text-gray-500">Account Created</p>
-                            <p className="text-gray-900">{formatDistanceToNow(user.createdAt, {addSuffix: true})}</p>
+                            <p className="">{formatDistanceToNow(user.createdAt, {addSuffix: true})}</p>
                         </div>
                     </div>
 
                     {/* Delete Profile Button */}
-                    <div className="w-full pt-4 border-t border-gray-200">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="w-full gap-2">
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete Profile
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete your
-                                        profile and remove you from all chatrooms.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        className="bg-red-600 hover:bg-red-700"
-                                    >
-                                        Delete Profile
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
+                    {/*<div className="w-full pt-4 border-t border-gray-200">*/}
+                    {/*    <AlertDialog>*/}
+                    {/*        <AlertDialogTrigger asChild>*/}
+                    {/*            <Button variant="destructive" className="w-full gap-2">*/}
+                    {/*                <Trash2 className="h-4 w-4" />*/}
+                    {/*                Delete Profile*/}
+                    {/*            </Button>*/}
+                    {/*        </AlertDialogTrigger>*/}
+                    {/*        <AlertDialogContent>*/}
+                    {/*            <AlertDialogHeader>*/}
+                    {/*                <AlertDialogTitle>Are you sure?</AlertDialogTitle>*/}
+                    {/*                <AlertDialogDescription>*/}
+                    {/*                    This action cannot be undone. This will permanently delete your*/}
+                    {/*                    profile and remove you from all chatrooms.*/}
+                    {/*                </AlertDialogDescription>*/}
+                    {/*            </AlertDialogHeader>*/}
+                    {/*            <AlertDialogFooter>*/}
+                    {/*                <AlertDialogCancel>Cancel</AlertDialogCancel>*/}
+                    {/*                <AlertDialogAction*/}
+                    {/*                    className="bg-red-600 hover:bg-red-700"*/}
+                    {/*                >*/}
+                    {/*                    Delete Profile*/}
+                    {/*                </AlertDialogAction>*/}
+                    {/*            </AlertDialogFooter>*/}
+                    {/*        </AlertDialogContent>*/}
+                    {/*    </AlertDialog>*/}
+                    {/*</div>*/}
 
                     {/* Additional Info */}
                     <div className="w-full pt-4 text-sm text-gray-500">
                         <p>
-                            Remember: SocketStack is completely anonymous. No personal information
-                            is stored on our servers.
+                            Remember: SocketStack is completely anonymous. Your conversations are never stored on our servers.
                         </p>
                     </div>
                 </div>

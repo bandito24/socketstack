@@ -14,7 +14,7 @@ roomUserRouter.use(validateAndAddRoomId)
 
 roomUserRouter.get('/', async (req, res) => {
     const {room_id} = req;
-    const {rows} = await db.query('SELECT username from users WHERE id IN (SELECT user_id FROM room_users where room_id = $1)', [room_id])
+    const {rows} = await db.query('SELECT username, avatar_color from users WHERE id IN (SELECT user_id FROM room_users where room_id = $1)', [room_id])
     return res.json(rows)
 })
 

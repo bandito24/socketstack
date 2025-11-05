@@ -91,6 +91,7 @@ export default function useRoomForm<T extends RoomSchemas>(
         }
         setPasswordEnabled(enable)
 
+
     }
 
     return {
@@ -103,7 +104,8 @@ export default function useRoomForm<T extends RoomSchemas>(
         serverErr,
         setServerErr,
         handleTogglePassword,
-        resetFormAndHide
+        resetFormAndHide,
+        form
     };
 
 

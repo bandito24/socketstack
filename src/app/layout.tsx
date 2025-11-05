@@ -5,6 +5,7 @@ import Header from "@/components/header/Header.tsx";
 import {SocketProvider} from "@/contexts/SocketProvider.tsx";
 import ReactQueryProvider from "@/contexts/ReactQueryProvider.tsx";
 import ProfileSheet from "@/components/ProfileSheet.tsx";
+import {ThemeProvider} from "@/contexts/ThemeProvider.tsx";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -31,19 +32,31 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen m-auto`}
         >
-        <div className="size-full flex flex-col h-screen">
-            <ReactQueryProvider>
-                <Header/>
-                {children}
 
-                <ProfileSheet />
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <div className="size-full flex flex-col h-screen">
+                <ReactQueryProvider>
+                    <Header/>
 
-            </ReactQueryProvider>
-        </div>
+                    <div className="flex-1 flex overflow-hidden">
+                        {children}
+                    </div>
+
+                        <ProfileSheet/>
+
+                </ReactQueryProvider>
+            </div>
+
+        </ThemeProvider>
         </body>
         </html>
     );

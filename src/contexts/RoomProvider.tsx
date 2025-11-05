@@ -10,8 +10,9 @@ export type Room = {
     slug: string,
     name: string,
     avatar_color: string,
-    notification_count?: 0;
-    total_members: number,
+    total_members?: number,
+    description?: string
+
 }
 
 type RoomContextType = {

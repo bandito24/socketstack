@@ -19,6 +19,13 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             type: "varchar(20)",
             notNull: true
         },
+        description: {
+            type: "text"
+        },
+        broadcasting: {
+            type: 'boolean',
+            notNull: true
+        },
         createdAt: {
             type: "timestamptz",
             notNull: true,

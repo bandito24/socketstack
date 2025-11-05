@@ -10,7 +10,6 @@ import {authClient} from "@/lib/auth-client.ts";
 import {useRouter} from "next/navigation";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {username} from "better-auth/plugins";
 import {Button} from "@/components/ui/button.tsx";
 import {useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
@@ -31,10 +30,12 @@ export default function SignUpForm() {
         }, {
             onError: (ctx) => {
                 const {error} = ctx;
+
+                console.log(ctx)
                 if ("message" in error) {
                     error.public = error.message
                 }
-                ServerRequest.handleServerError(ctx, setServerErr)
+                ServerRequest.handleServerError(error, setServerErr)
                 throw new Error()
             },
         });

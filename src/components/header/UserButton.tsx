@@ -8,7 +8,7 @@ export default function UserButton() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-gray-600 hover:text-gray-900">
+                <Button variant="ghost" size="icon" className="">
                     <User className="h-5 w-5"/>
                 </Button>
             </DropdownMenuTrigger>

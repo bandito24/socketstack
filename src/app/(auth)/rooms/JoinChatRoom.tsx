@@ -48,7 +48,7 @@ export function JoinChatroom({btnVariant}: JoinCreateRoomProps) {
         <Dialog open={hk.open} onOpenChange={hk.setOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className={cn('w-full',
-                    btnVariant === 'main' && 'w-full gap-2',
+                    btnVariant === 'main' && 'p-4 text-md gap-2',
                     btnVariant === 'sidebar' && ''
                     )}>
                     <UserPlus className="h-4 w-4" />

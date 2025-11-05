@@ -1,6 +1,6 @@
 'use client'
 import {Avatar, AvatarFallback} from "@/components/ui/avatar.tsx";
-import {ChevronRight, LogOut, MoreVertical, Send} from "lucide-react";
+import {ArrowLeft, ChevronRight, LogOut, MoreVertical, Send} from "lucide-react";
 import {MembersSheet} from "@/app/(auth)/rooms/[slug]/MembersSheet.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -15,8 +15,8 @@ import {
 import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import ServerRequest from "@/utils/serverRequest.ts";
-import {useRouter} from "next/navigation";
-import {getAvatarLetters} from "@/lib/utils.ts";
+import {useParams, usePathname, useRouter} from "next/navigation";
+import {cn, getAvatarLetters} from "@/lib/utils.ts";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -33,6 +33,7 @@ import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {ScrollAreaViewport} from "@radix-ui/react-scroll-area";
 import {toast, Toaster} from "sonner";
 import {BaseClockProvider} from "@/contexts/BaseClockProvider.tsx";
+import Link from "next/link";
 
 
 export function ChatWindow({room}: { room: Room }) {
@@ -53,6 +54,7 @@ export function ChatWindow({room}: { room: Room }) {
     const {clientSocket: socket, setClientSocket} = useSocketProvider()
     const inputRef = useRef<HTMLInputElement>(null)
     const scrollMessagesRef = useRef<HTMLDivElement>(null)
+    const pathname = usePathname()
 
     useEffect(() => {
         roomEventRef.current = roomEvents
@@ -202,11 +204,26 @@ export function ChatWindow({room}: { room: Room }) {
     })
 
 
+    const isRoomsNavigation = pathname.endsWith('rooms')
+
+
+
     return (
-        <div className="flex flex-col flex-1 bg-background">
+        <div className={cn('w-full md:flex flex-col flex-1 bg-background', isRoomsNavigation ? 'hidden' : 'flex')}>
             <Toaster/>
             {/* Header */}
             <div className="p-4 border-b border-border bg-card flex items-center gap-3">
+
+                <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden shrink-0"
+                >
+                    <Link href={'/rooms'}>
+                    <ArrowLeft className="h-5 w-5" />
+                    </Link>
+                </Button>
                 <Avatar>
                     <AvatarFallback style={{backgroundColor: room.avatar_color}}>
                         {getAvatarLetters(room.name)}

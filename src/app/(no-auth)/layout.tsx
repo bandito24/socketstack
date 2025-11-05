@@ -12,8 +12,8 @@ export default async function NoAuthLayout({children}: { children: ReactNode }) 
     }
 
     return (
-        <>
+        <div className="relative w-full flex justify-center">
         {children}
-        </>
+        </div>
     )
 }

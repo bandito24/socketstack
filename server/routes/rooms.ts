@@ -23,7 +23,7 @@ roomRouter.use('/:slug/room_users', roomUserRouter)
 
 
 roomRouter.post('/', checkRoomExistence, async (req, res) => {
-    const {name, password, slug} = req.body as { name: string, password: string | null, slug: string };
+    const {name, password, slug, description, broadcasting} = req.body as { name: string, password: string | null, slug: string, description: string, broadcasting: boolean };
     const {user} = req;
 
     if (req?.room) {
@@ -32,7 +32,7 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
 
 
     const avatarColor = getRandomAvatarColor();
-    const sql1 = 'INSERT INTO rooms (name, slug, password, avatar_color) VALUES ($1, $2, $3, $4) RETURNING *';
+    const sql1 = 'INSERT INTO rooms (name, slug, password, avatar_color, broadcasting, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
     let hashPassword;
     if (password) {
         hashPassword = await hashMyPassword(password)
@@ -41,7 +41,7 @@ roomRouter.post('/', checkRoomExistence, async (req, res) => {
     }
 
 
-    const qRes = await db.query(sql1, [name, slug, hashPassword, avatarColor]);
+    const qRes = await db.query(sql1, [name, slug, hashPassword, avatarColor, broadcasting, description]);
 
 
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'
@@ -105,10 +105,12 @@ roomRouter.post('/room_users', checkRoomExistence, async (req, res) => {
             }
         }
     }
+
+
     const sql2 = 'INSERT INTO room_users (user_id, room_id) VALUES ($1::text, $2)'
     await db.query(sql2, [user?.id, room.id])
 
-    return res.json({status: 'approved'})
+    return res.json({status: 'approved', room: req.room})
 
 
 })

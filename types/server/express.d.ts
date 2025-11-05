@@ -10,6 +10,7 @@ declare global {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            avatar_color: string,
             emailVerified: boolean;
             image?: string | null;
             username?: string | null;

@@ -83,11 +83,11 @@ export default class ServerRequest {
 
     }
 
-    static handleServerError(err: any, setServerError: React.Dispatch<React.SetStateAction<undefined | string>>){
+    static handleServerError(err: any, setServerError: React.Dispatch<React.SetStateAction<undefined | string>>, message?: string){
         if (err && typeof err === "object" && "public" in err) {
             setServerError(err.public as string)
         } else {
-            setServerError('An unexpected error occurred. Please try again soon.')
+            setServerError(message ?? 'An unexpected error occurred. Please try again soon.')
         }
         setTimeout(() => {
             setServerError(undefined)

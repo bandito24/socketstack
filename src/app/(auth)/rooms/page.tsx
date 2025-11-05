@@ -12,7 +12,7 @@ export default function EmptyChatPage() {
 
     return (
 
-        <div className="size-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-indigo-50/30">
+        <div className="size-full items-center justify-center hidden md:flex">
             <div className="max-w-md w-full px-8 text-center space-y-6">
                 {/* Animated graphic */}
                 <div className="relative flex justify-center">
@@ -37,8 +37,8 @@ export default function EmptyChatPage() {
 
                 {/* Text content */}
                 <div className="space-y-3">
-                    <h2 className="text-gray-900">No Chatroom Selected</h2>
-                    <p className="text-gray-600">
+                    <h2>No Chatroom Selected</h2>
+                    <p>
                         Select a chatroom from the sidebar to start messaging, or create a new room to begin a
                         conversation.
                     </p>
@@ -53,7 +53,7 @@ export default function EmptyChatPage() {
                 {/* Hint */}
                 <div className="pt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
                     <ArrowLeft className="h-4 w-4"/>
-                    <span>Choose a room from the sidebar</span>
+                    <span>Or choose a room from the sidebar</span>
                 </div>
             </div>
         </div>

@@ -17,10 +17,13 @@ interface MembersSheetProps {
     room: Room;
     memberStack: string[]
 }
+
 interface MembersDistType {
-    inactiveMembers: string[],
-    activeMembers: string[]
+    inactiveMembers: RoomMember[],
+    activeMembers: RoomMember[]
 }
+
+type RoomMember = { username: string, avatar_color: string }
 
 export function MembersSheet({
                                  isOpen,
@@ -43,18 +46,18 @@ export function MembersSheet({
     const {name: chatRoomName} = room
 
 
-    useEffect(()=> {
-        if(!fetchedMembers) return
+    useEffect(() => {
+        if (!fetchedMembers) return
 
         const memberSet = new Set(memberStack)
 
-        const active: string[] = [];
-        const inactive: string[] = [];
+        const active: RoomMember[] = [];
+        const inactive: RoomMember[] = [];
 
 
-        fetchedMembers.forEach((member: {username: string}) => {
-            if(memberSet.has(member.username)) active.push(member.username)
-            else inactive.push(member.username)
+        fetchedMembers.forEach((member: RoomMember) => {
+            if (memberSet.has(member.username)) active.push(member)
+            else inactive.push(member)
         })
         setMemberDist({inactiveMembers: inactive, activeMembers: active})
 
@@ -83,20 +86,20 @@ export function MembersSheet({
                             <div className="space-y-2">
                                 {membersDist.activeMembers.map((member) => (
                                     <div
-                                        key={member}
+                                        key={member.username}
                                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                     >
                                         <div className="relative">
                                             <Avatar>
-                                                <AvatarFallback style={{backgroundColor: "green"}}>
-                                                    {getAvatarLetters(member)}
+                                                <AvatarFallback style={{backgroundColor: member.avatar_color}}>
+                                                    {getAvatarLetters(member.username)}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div
                                                 className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"/>
                                         </div>
                                         <div className="flex-1">
-                                            <p>{member}</p>
+                                            <p>{member.username}</p>
                                         </div>
                                         <Badge variant="secondary" className="text-xs">
                                             Active
@@ -118,20 +121,20 @@ export function MembersSheet({
                                 <div className="space-y-2">
                                     {membersDist.inactiveMembers.map((member) => (
                                         <div
-                                            key={member}
+                                            key={member.username}
                                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                         >
                                             <div className="relative">
                                                 <Avatar className="opacity-60">
-                                                    <AvatarFallback style={{backgroundColor: "green"}}>
-                                                        {getAvatarLetters(member)}
+                                                    <AvatarFallback style={{backgroundColor: member.avatar_color}}>
+                                                        {getAvatarLetters(member.username)}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div
                                                     className="absolute bottom-0 right-0 w-3 h-3 bg-muted-foreground rounded-full border-2 border-background"/>
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-muted-foreground">{member}</p>
+                                                <p className="text-muted-foreground">{member.username}</p>
                                             </div>
                                             <Badge variant="outline" className="text-xs">
                                                 Offline

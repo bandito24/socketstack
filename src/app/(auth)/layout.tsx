@@ -21,13 +21,9 @@ export default async function AuthLayout({children}: { children: ReactNode }) {
         <>
             <RoomProvider>
                 <SocketProvider>
-                <div className="flex-1 flex overflow-hidden">
-                    <div className="w-80 flex flex-col overflow-hidden">
-                        <ChatSidebar
-                        />
-                    </div>
+                    <ChatSidebar
+                    />
                     {children}
-                </div>
                 </SocketProvider>
             </RoomProvider>
 

@@ -1,0 +1,1 @@
+alter table "users" add column "avatar_color" text not null;

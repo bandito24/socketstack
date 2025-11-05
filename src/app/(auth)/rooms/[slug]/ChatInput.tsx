@@ -31,7 +31,7 @@ export default function ChatInput({room, onSend}: { room: Room, onSend: (msg: st
             />
             <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition active:scale-[0.97]"
+                className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition active:scale-[0.97]"
             >
                 Send
             </button>
