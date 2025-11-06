@@ -16,10 +16,6 @@ import {clsx} from "clsx";
 
 export function ModeToggle() {
     const { setTheme, theme } = useTheme()
-
-    useEffect(()=> {
-        console.log(theme)
-    }, [theme])
     const activatedColor = 'bg-foreground/20';
 
     return (

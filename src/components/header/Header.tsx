@@ -1,5 +1,3 @@
-import {Button} from "@/components/ui/button.tsx";
-import {Bell, Radio, Search, Settings, User} from "lucide-react";
 import UserButton from "@/components/header/UserButton.tsx";
 import Link from "next/link";
 import {ModeToggle} from "@/app/components/ModeToggle.tsx";
@@ -18,17 +16,7 @@ export default function Header() {
 
             <div className="flex items-center gap-2">
                 <HubButton/>
-
                 <ModeToggle/>
-
-                {/*/!* Notifications Button *!/*/}
-                {/*<Button variant="ghost" size="icon" className=" relative">*/}
-                {/*    <Bell className="h-5 w-5"/>*/}
-                {/*    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"></span>*/}
-                {/*</Button>*/}
-
-
-                {/* User Profile Menu */}
                 <UserButton/>
             </div>
         </header>

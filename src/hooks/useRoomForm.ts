@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import useRoomContext, {Room} from "@/contexts/RoomProvider.tsx";
+import useRoomContext, {Room, RoomSchema} from "@/contexts/RoomProvider.tsx";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {z, ZodObject} from "zod";
 import {CreateRoomSchema, CreateRoomSchemaType, JoinRoomSchema, JoinRoomSchemaType} from "#root/form-schemas.ts";
@@ -22,45 +22,11 @@ export default function useRoomForm<T extends RoomSchemas>(
     type SchemaData = z.infer<T>;
 
 
+
     const mutation = useMutation({
         mutationFn: (data: SchemaData) => ServerRequest.post(postEndpoint, data),
-        onSuccess: async (data: Room) => {
-            await queryClient.invalidateQueries({queryKey: ['rooms']})
-            setRooms(prev => [...prev, data])
-            if (successFn) {
-                successFn()
-            }
-            setOpen(false)
-            form.reset()
-        },
-        onError: (data) => {
-            if ("status" in data) {
-                const {status} = data;
-                if (status === 422) {
-                    setPasswordEnabled(true)
-                }else if(status === 401){
-                    form.setError('password', {
-                        type: 'manual',
-                        message: 'This password is incorrect',
-                    });
-                } else if(status === 404){
-                    form.setError('name', {
-                        type: 'manual',
-                        message: 'We could not find a room matching this name',
-                    });
-                } else if ("public" in data) {
-                    setServerErr(data.public as string)
-                } else {
-                    setServerErr('An unexpected error occurred. Please try again soon.')
-                }
-            } else {
-                setServerErr('An unexpected error occurred. Please try again soon.')
-            }
-
-
-
-
-        }
+        onSuccess: handleFormSuccess({queryClient, setRooms, successFn, setOpen, form}),
+        onError: handleFormError({form, setPasswordEnabled, setServerErr})
     })
 
     function resetFormAndHide() {
@@ -74,8 +40,7 @@ export default function useRoomForm<T extends RoomSchemas>(
         setServerErr(undefined)
         try {
             await mutation.mutateAsync(data)
-            setOpen(false)
-            setPasswordEnabled(false)
+            resetFormAndHide()
         } catch (e) {
             console.error(e)
 
@@ -90,7 +55,6 @@ export default function useRoomForm<T extends RoomSchemas>(
             }
         }
         setPasswordEnabled(enable)
-
 
     }
 
@@ -109,4 +73,43 @@ export default function useRoomForm<T extends RoomSchemas>(
     };
 
 
+}
+
+export function handleFormSuccess({queryClient, setRooms, setOpen, form, successFn}) {
+    return async (data: Room[]) => {
+        try{
+            RoomSchema.parse(data)
+            await queryClient.invalidateQueries({queryKey: ['rooms']})
+            setRooms(prev => [...prev, data])
+            if (successFn && typeof successFn === 'function') {
+                successFn?.()
+            }
+        } catch(e){
+            console.error("Did not receive a valid room object in response")
+        }
+
+    }
+}
+
+export function handleFormError({
+                                    form,
+                                    setPasswordEnabled,
+                                    setServerErr,
+                                }: {
+    form: UseFormReturn<CreateRoomSchemaType>;
+    setPasswordEnabled: (val: boolean) => void;
+    setServerErr: (msg?: string) => void;
+}) {
+    return (data: any) => {
+        if (data && typeof data === 'object' && 'status' in data) {
+            const {status} = data;
+            if (status === 422) return setPasswordEnabled(true);
+            if (status === 401)
+                return form.setError('password', {type: 'manual', message: 'This password is incorrect'});
+            if (status === 404)
+                return form.setError('name', {type: 'manual', message: 'We could not find a room matching this name'});
+            if ('public' in data) return setServerErr(data.public as string);
+        }
+        setServerErr('An unexpected error occurred. Please try again soon.');
+    };
 }

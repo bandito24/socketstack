@@ -4,16 +4,18 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import ServerRequest from "@/utils/serverRequest.ts";
+import {z} from "zod";
 
-export type Room = {
-    id: number,
-    slug: string,
-    name: string,
-    avatar_color: string,
-    total_members?: number,
-    description?: string
+export const RoomSchema = z.object({
+    id: z.number(),
+    slug: z.string(),
+    name: z.string(),
+    avatar_color: z.string(),
+    total_members: z.number().optional(),
+    description: z.string().optional(),
+});
 
-}
+export type Room = z.infer<typeof RoomSchema>
 
 type RoomContextType = {
     rooms: Room[]

@@ -2,6 +2,7 @@
 import {Button} from "@/components/ui/button.tsx";
 import {authClient} from "@/lib/auth-client.ts";
 import {useRouter} from "next/navigation";
+import React from "react";
 
 export default function LogoutButton(){
     const router = useRouter()
@@ -11,7 +12,7 @@ export default function LogoutButton(){
             fetchOptions: {
                 onSuccess: () => {
                     router.push("/login"); // redirect to login page
-                },
+                }
             },
         });
     }
