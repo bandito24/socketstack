@@ -14,7 +14,6 @@ describe("LogoutButton",  () => {
     it("Calls auth client signOut form better auth when clicked", async() => {
         render(<LogoutButton/>)
         const button = screen.getByText("Logout");
-        expect(screen.getByText("Logout")).toBeInTheDocument();
         fireEvent.click(button)
         expect(authClient.signOut).toHaveBeenCalled();
     })

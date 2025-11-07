@@ -4,7 +4,7 @@ import {z} from "zod";
 import {SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorMessage} from "@/app/components/snippets.tsx";
-import { useRouter } from "next/navigation";
+import {useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
@@ -13,7 +13,7 @@ import {useState} from "react";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {Eye, EyeOff} from "lucide-react";
 
-export default function SignInForm(){
+export default function SignInForm() {
     const router = useRouter();
     const [serverError, setServerError] = useState<undefined | string>(undefined)
     const [showPassword, setShowPassword] = useState(false);
@@ -23,23 +23,22 @@ export default function SignInForm(){
             password: form.password, // required
             username: form.username, // required
         }, {
-            onError: (ctx) =>{
-                const {error} = ctx;
-                if("message" in error){
+            onError: (ctx) => {
+                const error = "error" in ctx ? ctx.error : ctx;
+                if ("message" in error) {
                     error.public = error.message
                 }
-
                 ServerRequest.handleServerError(error, setServerError)
                 console.log(error)
                 throw new Error()
-            } ,
+            },
         });
     }
 
 
     const SignInSchema = z.object({
-        username: z.string().min(1).max(20),
-        password: z.string().min(2).max(20),
+        username: z.string().min(1).max(40),
+        password: z.string().min(2).max(40),
     })
 
     type SignInSchemaType = z.infer<typeof SignInSchema>;
@@ -55,6 +54,7 @@ export default function SignInForm(){
         try {
             await signIn(data);
             router.push('/rooms')
+            console.log('did')
         } catch (e) {
             console.error(e)
         }
@@ -63,7 +63,7 @@ export default function SignInForm(){
     return (
         <>
 
-            <form onSubmit={handleSubmit(onSubmit)}  className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <ErrorMessage message={serverError}/>
                 <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
@@ -89,6 +89,7 @@ export default function SignInForm(){
 
                         <button
                             type="button"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword((prev) => !prev)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                         >
