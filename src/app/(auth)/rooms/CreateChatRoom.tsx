@@ -56,9 +56,9 @@ export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
         }
     }, [hk.passwordEnabled])
 
-    function handleSetBroadCasting(broadcast: boolean) {
-        if (!broadcast || !hk.passwordEnabled) {
-            setBroadcasting(broadcast)
+    function handleSetBroadCasting(next_broadcast: boolean) {
+        if (next_broadcast === false || !hk.passwordEnabled) {
+            setBroadcasting(next_broadcast)
             return
         }
         hk.form.setValue('broadcasting', false)
@@ -93,7 +93,7 @@ export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
                         <Label htmlFor="room-name">Room Name</Label>
                         <Input
                             autoComplete="off"
-                            id="name"
+                            id="room-name"
                             placeholder="Enter room name"
                             {...register("name")}
                         />
@@ -164,11 +164,13 @@ export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
                                 <Input
+                                    aria-label="room password"
                                     autoComplete="off"
                                     id="password"
                                     type="password"
                                     placeholder="Enter password"
                                     {...register("password")}
+                                    data-testid="password-input"
                                 />
 
                             </div>
@@ -176,8 +178,9 @@ export function CreateChatroom({btnVariant}: JoinCreateRoomProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="confirm-password">Confirm Password</Label>
                                 <Input
+                                    aria-label="confirm room password"
                                     autoComplete="off"
-                                    id="confirm_password"
+                                    id="confirm-password"
                                     type="password"
                                     {...register("confirm_password")}
                                     placeholder="Confirm password"

@@ -22,7 +22,7 @@ export default function SignUpForm() {
 
 
     async function signIn(form: SignUpSchemaType) {
-        const {data, error} = await authClient.signUp.email({
+        await authClient.signUp.email({
             email: `${form.username}@gmail.com`, // required
             name: form.username, // required
             password: form.password, // required
@@ -97,6 +97,7 @@ export default function SignUpForm() {
 
                     <button
                         type="button"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                         onClick={() => setShowPassword((prev) => !prev)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                     >
@@ -114,8 +115,8 @@ export default function SignUpForm() {
             <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
                 <Input
+                    type={showPassword ? "text" : "password"}
                     id="confirm-password"
-                    type="password"
                     placeholder="Confirm your password"
                     {...register('password_confirmation')}
                 />

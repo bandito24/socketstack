@@ -10,6 +10,7 @@ import ServerRequest from "@/utils/serverRequest.ts";
 import {useEffect, useState} from "react";
 import {getAvatarLetters} from "@/lib/utils.ts";
 import {username} from "better-auth/plugins";
+import {RoomUsersDTO} from "@mytypes/DTOs.ts";
 
 interface MembersSheetProps {
     isOpen: boolean;
@@ -21,6 +22,23 @@ interface MembersSheetProps {
 interface MembersDistType {
     inactiveMembers: RoomMember[],
     activeMembers: RoomMember[]
+}
+
+export function collectActiveAndInactive(memberStack: string[], allMembers: RoomUsersDTO[] | undefined) {
+    const memberSet = new Set(memberStack ?? [])
+
+    const active: RoomMember[] = [];
+    const inactive: RoomMember[] = [];
+
+    (allMembers ?? []).forEach((member: RoomMember) => {
+        if (memberSet.has(member?.username ?? '')) active.push(member)
+        else inactive.push(member)
+    })
+
+
+    return {active, inactive}
+
+
 }
 
 type RoomMember = { username: string, avatar_color: string }
@@ -35,7 +53,7 @@ export function MembersSheet({
     const [membersDist, setMemberDist] = useState<MembersDistType>({inactiveMembers: [], activeMembers: []})
 
     const {data: fetchedMembers} = useQuery({
-        queryFn: async () => {
+        queryFn: async (): Promise<RoomUsersDTO[]> => {
             const res = await ServerRequest.get(`/rooms/${room.slug}/room_users`)
             return res
         },
@@ -47,18 +65,9 @@ export function MembersSheet({
 
 
     useEffect(() => {
-        if (!fetchedMembers) return
-
-        const memberSet = new Set(memberStack)
-
-        const active: RoomMember[] = [];
-        const inactive: RoomMember[] = [];
+        const {active, inactive} = collectActiveAndInactive(memberStack, fetchedMembers)
 
 
-        fetchedMembers.forEach((member: RoomMember) => {
-            if (memberSet.has(member.username)) active.push(member)
-            else inactive.push(member)
-        })
         setMemberDist({inactiveMembers: inactive, activeMembers: active})
 
 

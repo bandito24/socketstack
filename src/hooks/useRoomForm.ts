@@ -5,6 +5,7 @@ import ServerRequest from "@/utils/serverRequest.ts";
 import {z, ZodObject} from "zod";
 import {CreateRoomSchema, CreateRoomSchemaType, JoinRoomSchema, JoinRoomSchemaType} from "#root/form-schemas.ts";
 import {SubmitHandler, useForm, UseFormReturn} from "react-hook-form";
+import MakeNotification from "@/utils/MakeNotification.ts";
 
 type RoomSchemas = typeof CreateRoomSchema | typeof JoinRoomSchema;
 export default function useRoomForm<T extends RoomSchemas>(
@@ -85,7 +86,7 @@ export function handleFormSuccess({queryClient, setRooms, setOpen, form, success
                 successFn?.()
             }
         } catch(e){
-            console.error("Did not receive a valid room object in response")
+            MakeNotification.alertFailed()
         }
 
     }

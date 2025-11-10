@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import SignUpForm from "@/app/(no-auth)/sign-up/SignUpForm.tsx";
 import {authClient} from "@/lib/auth-client.ts";
 import {pushRouterMock} from "#root/tests/vitest.setup.ts";
+import SignInForm from "@/app/(no-auth)/login/SignInForm.tsx";
+import {checkToggleVisibility} from "@/app/(no-auth)/login/SignInForm.test.tsx";
 
 
 
@@ -11,14 +13,26 @@ import {pushRouterMock} from "#root/tests/vitest.setup.ts";
 describe("Sign Up Form", () => {
    it("Does not allow you to sign up with password and confirm mismatch", async () => {
        render(<SignUpForm/>)
-       const {password, confPassword, username, submit} = getElements(screen)
-       await fillForm(screen, {password: '123', confPassword: '321'})
+       const {submit} = await fillForm(screen, {password: '123', confPassword: '321'})
        await userEvent.click(submit)
        expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
        expect(authClient.signUp.email).not.toHaveBeenCalled()
        expect(pushRouterMock).not.toHaveBeenCalled()
 
    })
+    it("Successfully submits and navigates on successful form completion", async () => {
+        render(<SignUpForm/>)
+        const {submit} = await fillForm(screen)
+        await userEvent.click(submit)
+        expect(authClient.signUp.email).toHaveBeenCalled()
+        expect(pushRouterMock).toHaveBeenCalled()
+    })
+    it("Allows toggling of password visibility", async () => {
+        render(<SignUpForm/>)
+        await checkToggleVisibility(screen)
+        const passwordConfInput = screen.getByLabelText<HTMLInputElement>("Confirm Password");
+        expect(passwordConfInput.type).toBe('text')
+    })
 })
 
 
@@ -40,11 +54,11 @@ async function fillForm(
         username?: string;
     } = {}
 ) {
-    const { password, confPassword, username } = getElements(screen);
+    const { password, confPassword, username, submit } = getElements(screen);
 
     await userEvent.type(password, data.password ?? '123');
     await userEvent.type(confPassword, data.confPassword ?? '123');
     await userEvent.type(username, data.username ?? 'char');
 
-    return { password, confPassword, username }
+    return { password, confPassword, username, submit }
 }

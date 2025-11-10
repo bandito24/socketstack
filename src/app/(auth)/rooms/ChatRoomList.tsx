@@ -19,7 +19,7 @@ type RoomPreviewState = Record<RoomId, RoomPreview>;
 const emptyPreview: RoomPreview = {stackCount: 0, lastMessage: null, unreadMessageCount: 0};
 
 
-export default function ChatRoomList({rooms}: {rooms: Room[]}) {
+export default function ChatRoomList({rooms}: { rooms: Room[] }) {
 
 
     const {clientSocket: socket} = useSocketProvider()
@@ -101,10 +101,13 @@ export default function ChatRoomList({rooms}: {rooms: Room[]}) {
         <BaseClockProvider>
             <div className="divide-y divide-border flex-1 overflow-y-auto">
                 {rooms.map(room => (
-                    <ChatRoomItem
-                        roomPreview={roomPreviews[room.id] ?? emptyPreview}
-                        indicateRead={() => setPreviewRead(room.id)}
-                        activeSlug={activeRoomRef?.current?.slug} room={room} key={room.id}/>
+                    <div key={room.id} data-testid={`chatroom-item-${room.id}`}>
+                        <ChatRoomItem
+
+                            roomPreview={roomPreviews[room.id] ?? emptyPreview}
+                            indicateRead={() => setPreviewRead(room.id)}
+                            activeSlug={activeRoomRef?.current?.slug} room={room} />
+                    </div>
                 ))}
             </div>
         </BaseClockProvider>

@@ -25,26 +25,7 @@ describe("UseRoomFormHook", () => {
         beforeAll(() => {
             vi.clearAllMocks()
 
-            vi.mock("@tanstack/react-query", () => ({
-                useQueryClient: () => ({
-                    invalidateQueries: vi.fn(),
-                }),
-                useMutation: () => ({
-                    mutate: vi.fn()
-                })
-            }));
-            vi.mock("@/contexts/RoomProvider.tsx", async () => {
-                const actual = await vi.importActual<typeof import("@/contexts/RoomProvider.tsx")>(
-                    "@/contexts/RoomProvider.tsx"
-                );
-                return {
-                    ...actual, // keep all real named exports (RoomSchema, Room, etc.)
-                    default: () => ({
-                        rooms: [],
-                        setRooms: vi.fn(),
-                    }),
-                };
-            });
+
         })
 
 

@@ -26,6 +26,7 @@ export default function ChatInput({room, onSend}: { room: Room, onSend: (msg: st
             <input
                 ref={inputRef}
                 type="text"
+                aria-label={"Enter your message"}
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />

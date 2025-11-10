@@ -12,6 +12,7 @@ import {username} from "better-auth/plugins";
 import {useState} from "react";
 import ServerRequest from "@/utils/serverRequest.ts";
 import {Eye, EyeOff} from "lucide-react";
+import MakeNotification from "@/utils/MakeNotification.ts";
 
 export default function SignInForm() {
     const router = useRouter();
@@ -54,9 +55,8 @@ export default function SignInForm() {
         try {
             await signIn(data);
             router.push('/rooms')
-            console.log('did')
         } catch (e) {
-            console.error(e)
+            MakeNotification.alertFailed()
         }
     }
 

@@ -19,12 +19,7 @@ describe("SignInForm", () => {
 
     it("Allows toggling of password visibility", async () => {
         render(<SignInForm/>)
-        const passwordInput = screen.getByLabelText<HTMLInputElement>("Password");
-        expect(passwordInput.type).toBe('password')
-        await userEvent.type(passwordInput, 'password')
-        const toggleButton = screen.getByRole("button", {name: /show password/i});
-        await userEvent.click(toggleButton);
-        expect(passwordInput.type).toBe('text')
+        await checkToggleVisibility(screen)
     })
     it("Calls Better Auth On Sign In And Navigates to Rooms", async() => {
         render(<SignInForm/>)
@@ -57,3 +52,11 @@ describe("SignInForm", () => {
     })
 
 })
+export async function checkToggleVisibility(screen: Screen){
+    const passwordInput = screen.getByLabelText<HTMLInputElement>("Password");
+    expect(passwordInput.type).toBe('password')
+    await userEvent.type(passwordInput, 'password')
+    const toggleButton = screen.getByRole("button", {name: /show password/i});
+    await userEvent.click(toggleButton);
+    expect(passwordInput.type).toBe('text')
+}
