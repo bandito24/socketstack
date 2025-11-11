@@ -2,7 +2,7 @@ import express from "express";
 import {validateAndAddRoomId} from "#root/server/middleware/middleware.ts";
 import * as db from "#root/server/db.ts";
 import {dbPool} from "#root/server/db.ts";
-import {RoomUsersDTO} from "@mytypes/DTOs.ts";
+import type {RoomUsersDTO} from "#root/types/DTOs.ts";
 
 
 export const roomUserRouter = express.Router({mergeParams: true})

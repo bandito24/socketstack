@@ -1,7 +1,6 @@
 import {render, screen, Screen, within} from "@testing-library/react";
 import {CreateChatroom} from "@/app/(auth)/rooms/CreateChatRoom.tsx";
 import userEvent from "@testing-library/user-event";
-import {mutationAsyncMock} from "#root/tests/vitest.setup.ts";
 import {beforeEach} from "vitest";
 
 
@@ -54,7 +53,6 @@ describe("Create Room Component", () => {
         await fillPasswordInputs(screen, {password: '123', confirm: '123'})
         await userEvent.type(nameInput, '123');
         await userEvent.click(submit)
-        console.log(mutationAsyncMock.mock.calls)
         expect(mutationAsyncMock).toHaveBeenCalledWith(expect.objectContaining({broadcasting: false}))
     })
     it("does not allow a broadcasted room without a description", async () => {
@@ -68,5 +66,29 @@ describe("Create Room Component", () => {
 
     })
 })
+
+const mutationMock = vi.fn();
+const mutationAsyncMock = vi.fn();
+const useQueryDataMock = vi.fn()
+
+vi.mock("@tanstack/react-query", () => ({
+    useQueryClient: () => ({
+        invalidateQueries: vi.fn(),
+    }),
+    useMutation: () => ({
+        mutate: mutationMock,
+        mutateAsync: mutationAsyncMock,
+        isPending: false,
+        isError: false,
+        isSuccess: false,
+        reset: vi.fn(),
+    }),
+    useQuery: vi.fn().mockImplementation(() => ({
+        data: useQueryDataMock(),
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+    })),
+}));
 
 

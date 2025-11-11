@@ -1,13 +1,19 @@
 import "@testing-library/jest-dom";
 import {vi} from "vitest";
 import {mockRooms, mockUser} from "@/mocks.ts";
+import {QueryClient} from "@tanstack/react-query";
+import {ReactNode} from "react";
 
 
 export const authSignInMock = vi.fn()
 export const authSignUpMock = vi.fn()
 export const useAuthSessionMock = vi.fn(() => ({session: {user: mockUser()}}))
 vi.mock("@/lib/auth-client.ts", () => ({
-    authClient: {signIn: {username: authSignInMock}, signUp: {email: authSignUpMock}, useSession: () => useAuthSessionMock }
+    authClient: {
+        signIn: {username: authSignInMock},
+        signUp: {email: authSignUpMock},
+        useSession: () => useAuthSessionMock
+    }
 }))
 
 export const usePathnameMock = vi.fn();
@@ -22,36 +28,52 @@ vi.mock("next/navigation", () => ({
 }));
 
 export const handleServerErrorMock = vi.fn()
+export const serverRequestPostMock = vi.fn()
+export const serverRequestGetMock = vi.fn()
 vi.mock("@/utils/serverRequest.ts", () => ({
     default: {
         handleServerError: handleServerErrorMock,
+        post: serverRequestPostMock,
+        get: serverRequestGetMock
     }
 }));
 
 
-export const mutationMock = vi.fn();
-export const mutationAsyncMock = vi.fn();
-export const useQueryDataMock = vi.fn()
+// export const mutationMock = vi.fn();
+// export const mutationAsyncMock = vi.fn();
+// export const useQueryDataMock = vi.fn()
+//
+// vi.mock("@tanstack/react-query", () => ({
+//     useQueryClient: () => ({
+//         invalidateQueries: vi.fn(),
+//     }),
+//     // useMutation: () => ({
+//     //     mutate: mutationMock,
+//     //     mutateAsync: mutationAsyncMock,
+//     //     isPending: false,
+//     //     isError: false,
+//     //     isSuccess: false,
+//     //     reset: vi.fn(),
+//     // }),
+//     // useQuery: vi.fn().mockImplementation(() => ({
+//     //     data: useQueryDataMock(),
+//     //     isLoading: false,
+//     //     error: null,
+//     //     refetch: vi.fn(),
+//     // })),
+// }));
+export function testQueryClient(){
+   return new QueryClient({
+       defaultOptions: {
+           queries: {
+               retry: false,
+           },
+       },
+   })
+}
 
-vi.mock("@tanstack/react-query", () => ({
-    useQueryClient: () => ({
-        invalidateQueries: vi.fn(),
-    }),
-    useMutation: () => ({
-        mutate: mutationMock,
-        mutateAsync: mutationAsyncMock,
-        isPending: false,
-        isError: false,
-        isSuccess: false,
-        reset: vi.fn(),
-    }),
-    useQuery: vi.fn().mockReturnValue({
-        data: useQueryDataMock(),
-        isLoading: false,
-        error: null,
-        refetch: vi.fn(),
-    }),
-}));
+
+
 
 vi.mock("@/contexts/RoomProvider.tsx", async () => {
     const actual = await vi.importActual<typeof import("@/contexts/RoomProvider.tsx")>(
@@ -66,13 +88,27 @@ vi.mock("@/contexts/RoomProvider.tsx", async () => {
     };
 });
 
-export const mockSocket = {
-    on: vi.fn(),
-    off: vi.fn(),
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    emit: vi.fn(),
-};
+
+type Listener = (payload?: any) => void;
+function createMockSocket() {
+    const listeners: Record<string, Listener[]> = {};
+
+    return {
+        on(event: string, cb: Listener) {
+            (listeners[event] ||= []).push(cb);
+        },
+        off(event: string, cb: Listener) {
+            listeners[event] = (listeners[event] || []).filter((fn) => fn !== cb);
+        },
+        emit(event: string, payload?: any) {
+            for (const fn of listeners[event] || []) fn(payload);
+        },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+        listeners
+    };
+}
+export const mockSocket = createMockSocket()
 
 // The mock context value
 export const useSocketProviderMockValue = {
@@ -111,18 +147,22 @@ export function createMockUseRoomFormHook() {
             handleSubmit: vi.fn(),
             setValue: vi.fn(),
             watch: vi.fn(),
-            formState: { errors: {} },
+            formState: {errors: {}},
             reset: vi.fn(),
         },
     };
 }
 
 
-
 class ResizeObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    observe() {
+    }
+
+    unobserve() {
+    }
+
+    disconnect() {
+    }
 }
 
 (globalThis as any).ResizeObserver = ResizeObserver;

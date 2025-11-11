@@ -1,3 +1,5 @@
+import {MemberEvent, MessageIOEvent} from "@mytypes/IOTypes.ts";
+import {RoomPreview} from "@/app/(auth)/rooms/ChatRoomList.tsx";
 
 export const mockUser = () => ({
     id: "user_123",
@@ -21,6 +23,29 @@ export const mockRoom = () => ({
 });
 
 export const mockHookForm = () => ({reset: vi.fn(), setValue: vi.fn(), setError: vi.fn()});
+
+
+export const mockMessageIOEvent = (): MessageIOEvent =>  ({
+    room_id: "123",
+    type: "msg",
+    content: "Hello world!",
+    username: "Charlie",
+    time: new Date().toISOString(),
+    stackCount: 3,
+});
+export const mockMemberEvent = (): MemberEvent => ({
+    type: "member",
+    status: "join",
+    username: "Charlie",
+    time: new Date().toISOString(),
+    room_id: "101",
+    memberStack: ["Charlie", "Alex", "Sam"],
+});
+export const mockEmptyRoomPreview =  (): RoomPreview => ({
+    stackCount: 0,
+    lastMessage: null,
+    unreadMessageCount: 0,
+})
 
 
 
@@ -59,4 +84,14 @@ export const mockRooms = [
         description: "Experiments with GPT, LangChain, and AI research tools.",
     },
 ];
+export const oneMoreMockRoom = {
+    id: 6,
+    slug: "illegal-activities",
+    name: "illegal activities",
+    avatar_color: "#22C55E", // green-500
+    total_members: 32,
+    description: "First rule of fight club",
+}
+
+
 

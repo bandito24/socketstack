@@ -4,10 +4,10 @@ import {ChatRoomItem} from "@/app/(auth)/rooms/ChatRoomItem.tsx";
 import {useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
 import useSocketProvider from "@/contexts/SocketProvider.tsx";
-import {MessageIOEvent, ServerToClientEvents} from "@mytypes/IOTypes.ts";
+import {MemberEvent, MessageIOEvent, ServerToClientEvents} from "@mytypes/IOTypes.ts";
 import {BaseClockProvider} from "@/contexts/BaseClockProvider.tsx";
 
-type RoomId = number | string;
+type RoomId = string;
 
 export type RoomPreview = {
     stackCount: number;
@@ -34,8 +34,9 @@ export default function ChatRoomList({rooms}: { rooms: Room[] }) {
         setRoomPreviews(prev => {
             const next = {...prev};
             for (const room of rooms) {
-                if (!(room.id in next)) {
-                    next[room.id] = {stackCount: 0, lastMessage: null, unreadMessageCount: 0};
+                const roomId = room.id.toString()
+                if (!(roomId in next)) {
+                    next[roomId] = {stackCount: 0, lastMessage: null, unreadMessageCount: 0};
                 }
             }
             return next;
@@ -47,40 +48,26 @@ export default function ChatRoomList({rooms}: { rooms: Room[] }) {
 
 
     const setPreviewRead = (roomId: RoomId) => {
-        if (!(roomId in roomPreviews)) return
+        if (!roomId || !(roomId in roomPreviews)) return
         const updated = {...roomPreviews[roomId]}
         updated.unreadMessageCount = 0
         setRoomPreviews(prev => ({...prev, [roomId]: updated}))
     }
 
-
-    function updateRoomPreviewState(
-        roomId: string,
-        stackCount: number,
-        lastMessage: MessageIOEvent | null = null
-    ) {
-        setRoomPreviews(prev => {
-
-            const preview = prev[roomId] ?? emptyPreview;
-            return {
-                ...prev,
-                [roomId]: {
-                    stackCount,
-                    lastMessage: lastMessage ?? preview.lastMessage,
-                    unreadMessageCount: lastMessage && parseInt(roomId) !== activeRoomRef.current?.id ?
-                        preview.unreadMessageCount + 1 :
-                        preview.unreadMessageCount
-                }
-            };
-        });
+    function handleRoomPreviewState(payload: MessageIOEvent | MemberEvent) {
+        const updatedRoomPreview = updateRoomPreview(
+            payload,
+            activeRoomRef?.current?.id.toString() ?? '-1',
+            roomPreviews[payload.room_id] ?? emptyPreview)
+        setRoomPreviews(prev => ({...prev, [payload.room_id]: updatedRoomPreview}))
     }
+
 
     const handleMemberEvent: ServerToClientEvents['member-event'] = (payload) => {
-        updateRoomPreviewState(payload.room_id, payload.memberStack.length)
+        handleRoomPreviewState(payload)
     }
     const handleMessageEvent: ServerToClientEvents['msg-event'] = payload => {
-
-        updateRoomPreviewState(payload.room_id, payload.stackCount, payload)
+        handleRoomPreviewState(payload)
     }
 
 
@@ -105,12 +92,30 @@ export default function ChatRoomList({rooms}: { rooms: Room[] }) {
                         <ChatRoomItem
 
                             roomPreview={roomPreviews[room.id] ?? emptyPreview}
-                            indicateRead={() => setPreviewRead(room.id)}
-                            activeSlug={activeRoomRef?.current?.slug} room={room} />
+                            indicateRead={() => setPreviewRead(room.id.toString())}
+                            activeSlug={activeRoomRef?.current?.slug} room={room}/>
                     </div>
                 ))}
             </div>
         </BaseClockProvider>
 
     )
+}
+
+
+export function updateRoomPreview(
+    payload: MessageIOEvent | MemberEvent,
+    activeRoomId: string | null,
+    currentRoomPreview: RoomPreview
+) {
+    const isMsgType = payload.type === 'msg'
+    const roomPreview = {...currentRoomPreview}
+    roomPreview.stackCount = isMsgType ? payload.stackCount : payload.memberStack.length
+    if (isMsgType) {
+        roomPreview.lastMessage = payload
+    }
+    if (activeRoomId && payload.room_id !== activeRoomId && isMsgType) {
+        roomPreview.unreadMessageCount += 1
+    }
+    return roomPreview
 }

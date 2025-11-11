@@ -58,7 +58,7 @@ export function MembersSheet({
             return res
         },
         queryKey: ['room_users', room.id],
-        enabled: isOpen
+        enabled: !!isOpen
     })
 
     const {name: chatRoomName} = room
@@ -66,11 +66,9 @@ export function MembersSheet({
 
     useEffect(() => {
         const {active, inactive} = collectActiveAndInactive(memberStack, fetchedMembers)
-
-
+        console.log(active)
+        console.log(inactive)
         setMemberDist({inactiveMembers: inactive, activeMembers: active})
-
-
     }, [memberStack, fetchedMembers])
 
 
@@ -95,6 +93,7 @@ export function MembersSheet({
                             <div className="space-y-2">
                                 {membersDist.activeMembers.map((member) => (
                                     <div
+                                        data-testid={`active-${member.username}`}
                                         key={member.username}
                                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                     >
@@ -130,6 +129,7 @@ export function MembersSheet({
                                 <div className="space-y-2">
                                     {membersDist.inactiveMembers.map((member) => (
                                         <div
+                                            data-testid={`inactive-${member.username}`}
                                             key={member.username}
                                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                                         >

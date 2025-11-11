@@ -29,13 +29,12 @@ export default function RoomResults({rooms}: { rooms: Room[] }) {
 
     const handleJoinRoom = useMutation({
         mutationFn: async (name: string) => {
-            console.log(name)
             return await ServerRequest.post('rooms/room_users', {name})
         },
         onError: (err) => ServerRequest.handleServerError(err, setServerError, `An unexpected event occurred in joining this room`),
         onSuccess: async (data) => {
             await queryClient.invalidateQueries({queryKey: ['rooms']})
-            router.push(`/rooms/${data.room.slug}`)
+            router.push(`/rooms/${data?.room?.slug}`)
         }
     })
 
@@ -69,7 +68,7 @@ export default function RoomResults({rooms}: { rooms: Room[] }) {
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <CardTitle className="truncate">{room.name}</CardTitle>
+                                            <CardTitle data-testid="room-result" className="truncate">{room.name}</CardTitle>
 
                                         </div>
                                         <div

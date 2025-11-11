@@ -21,7 +21,7 @@ export function ChatRoomItem({room, activeSlug, roomPreview, indicateRead}: {
     const {timeLabel} = useTimeRefresh({eventTime: roomPreview.lastMessage?.time})
 
     useEffect(() => {
-        if (activeRoom && roomPreview.unreadMessageCount) {
+        if (activeRoom) {
             indicateRead()
         }
     }, [activeSlug])
@@ -68,11 +68,12 @@ export function ChatRoomItem({room, activeSlug, roomPreview, indicateRead}: {
                             (!roomPreview.lastMessage || !roomPreview.stackCount) && 'invisible',
                             hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
                         )}
+                        data-testid={'preview-content'}
                     >
                         {roomPreview.lastMessage?.content ?? ''}
                     </p>
                     {hasUnread ? (
-                        <Badge className="shrink-0 p-1 min-w-10 bg-primary text-primary-foreground">
+                        <Badge data-testid={'preview-count'} className="shrink-0 p-1 min-w-10 bg-primary text-primary-foreground">
                             {roomPreview.unreadMessageCount}
                         </Badge>
                     ) : null}

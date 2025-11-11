@@ -38,6 +38,31 @@ describe("Profile Sheet Component", () => {
     it("Renders user information", () => {
         (useClientAuthSession as any).mockReturnValue({ data: { user: mockUser() } });
         render(<ProfileSheet />);
-        expect(screen.getByText("TestUser")).toBeInTheDocument();
+        expect(screen.getByText("testuser")).toBeInTheDocument();
     })
 })
+
+
+const mutationMock = vi.fn();
+const mutationAsyncMock = vi.fn();
+const useQueryDataMock = vi.fn()
+
+vi.mock("@tanstack/react-query", () => ({
+    useQueryClient: () => ({
+        invalidateQueries: vi.fn(),
+    }),
+    useMutation: () => ({
+        mutate: mutationMock,
+        mutateAsync: mutationAsyncMock,
+        isPending: false,
+        isError: false,
+        isSuccess: false,
+        reset: vi.fn(),
+    }),
+    useQuery: vi.fn().mockImplementation(() => ({
+        data: useQueryDataMock(),
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+    })),
+}));

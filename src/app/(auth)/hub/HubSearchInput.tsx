@@ -3,7 +3,7 @@ import {Search} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {useRoomSearchStore} from "@/hooks/useRoomSearchStore.ts";
 
-export default function HubSearchInput(){
+export default function HubSearchInput() {
     const setSearch = useRoomSearchStore(state => state.setSearch)
 
     return (
@@ -13,6 +13,7 @@ export default function HubSearchInput(){
                 onChange={e => setSearch(e.currentTarget.value)}
                 placeholder="Search rooms by name..."
                 className="pl-9"
+                aria-label={'search socketstack hub'}
             />
         </div>
     )
